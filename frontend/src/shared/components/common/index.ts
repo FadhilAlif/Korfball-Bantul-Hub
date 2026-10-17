@@ -6,3 +6,4 @@ export { MenuItem } from "./MenuItem";
 export { PageHeader } from "./PageHeader";
 export { RefreshButton } from "./RefreshButton";
 export { SearchInput } from "./SearchInput";
+export { ServiceWorkerRegister } from "./ServiceWorkerRegister";

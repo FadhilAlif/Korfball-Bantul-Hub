@@ -28,7 +28,7 @@ export const Sidebar = memo(function Sidebar({ collapsed = false, onMobileClose 
       </div>
 
       {/* Navigation */}
-      <nav className="flex flex-col gap-0.5 p-3 flex-1">
+      <nav className="flex flex-col gap-0.5 p-3 flex-1 overflow-y-auto">
         {!collapsed && (
           <div className="text-[10.5px] font-semibold tracking-[0.08em] uppercase text-muted-foreground px-2.5 py-2">
             Workspace

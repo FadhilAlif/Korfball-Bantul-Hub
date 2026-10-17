@@ -2,6 +2,7 @@
 
 import { ChevronRight, Download, Loader2, UserPlus } from "lucide-react";
 import Link from "next/link";
+import { AthleteTodaySessionCard } from "@/features/attendance";
 import { PageHeader } from "@/shared/components/common";
 import { Button, buttonVariants } from "@/shared/components/ui";
 import { useAnyPermission, usePermission } from "@/shared/hooks";
@@ -46,6 +47,8 @@ export function DashboardPage() {
           )}
         </div>
       </PageHeader>
+
+      <AthleteTodaySessionCard />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {statCards.map((card) => (

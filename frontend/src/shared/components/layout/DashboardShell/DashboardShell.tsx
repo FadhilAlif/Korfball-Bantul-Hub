@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { useNotificationSSE } from "@/features/notifications/hooks";
+import { BottomNav } from "../BottomNav";
 import { Header } from "../Header";
 import { Sidebar } from "../Sidebar";
 import { useSidebar } from "./useSidebar";
@@ -33,7 +34,8 @@ export function DashboardShell({ children }: DashboardShellProps) {
 
       <div className="flex flex-1 flex-col overflow-hidden min-w-0">
         <Header onToggleSidebar={toggleCollapsed} onOpenMobileNav={openMobile} />
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
+        <main className="flex-1 overflow-y-auto p-4 pb-22 md:p-6 md:pb-6">{children}</main>
+        <BottomNav onOpenMenu={openMobile} />
       </div>
     </div>
   );
