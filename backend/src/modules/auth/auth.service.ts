@@ -3,6 +3,7 @@ import { and, eq, isNull, ne } from "drizzle-orm";
 import { DRIZZLE_DB } from "../../database/database.module.js";
 import type { DrizzleDatabase } from "../../database/connection.js";
 import {
+  athletes,
   emailVerificationTokens,
   passwordResetTokens,
   permissions,
@@ -239,10 +240,24 @@ export class AuthService {
 
     if (!user) throw new Error("USER_NOT_FOUND");
 
-    const [rolesList, permissionsList] = await Promise.all([
+    const [rolesList, permissionsList, linkedAthletes] = await Promise.all([
       this.getUserRoles(userId),
       this.getUserPermissions(userId),
+      this.db
+        .select({
+          id: athletes.id,
+          fullName: athletes.fullName,
+          nickname: athletes.nickname,
+          teamId: athletes.teamId,
+          jerseyNumber: athletes.jerseyNumber,
+          sex: athletes.sex,
+        })
+        .from(athletes)
+        .where(and(eq(athletes.userId, userId), isNull(athletes.deletedAt)))
+        .limit(1),
     ]);
+
+    const linkedAthlete = linkedAthletes[0] ?? null;
 
     return {
       id: user.id,
@@ -251,6 +266,7 @@ export class AuthService {
       email: user.email,
       roles: rolesList,
       permissions: permissionsList,
+      athlete: linkedAthlete,
     };
   }
 

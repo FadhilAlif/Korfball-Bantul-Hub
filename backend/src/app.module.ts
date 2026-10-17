@@ -10,6 +10,8 @@ import { PermissionsModule } from "./modules/permissions/permissions.module.js";
 import { AuditLogsModule } from "./modules/audit-logs/audit-logs.module.js";
 import { DashboardModule } from "./modules/dashboard/dashboard.module.js";
 import { NotificationsModule } from "./modules/notifications/notifications.module.js";
+import { TeamsModule } from "./modules/teams/teams.module.js";
+import { AthletesModule } from "./modules/athletes/athletes.module.js";
 import { Public } from "./common/decorators/public.decorator.js";
 import { AppThrottlerGuard } from "./common/guards/throttler.guard.js";
 import { AuditLogInterceptor } from "./common/interceptors/audit-log.interceptor.js";
@@ -46,6 +48,8 @@ export class AppController {
     AuditLogsModule,
     DashboardModule,
     NotificationsModule,
+    TeamsModule,
+    AthletesModule,
   ],
   controllers: [AppController],
   providers: [
