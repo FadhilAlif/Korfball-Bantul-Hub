@@ -37,8 +37,9 @@ export function MatchDetailPage({ matchId }: MatchDetailPageProps) {
         toast.success("Pertandingan dimulai!");
         router.push(`/matches/${matchId}/record`);
       },
-      onError: () => {
-        toast.error("Gagal memulai pertandingan.");
+      onError: (err: unknown) => {
+        const errorResponse = err as { response?: { data?: { message?: string } }; message?: string };
+        toast.error(errorResponse?.response?.data?.message || errorResponse?.message || "Gagal memulai pertandingan.");
       },
     });
   };
@@ -49,8 +50,11 @@ export function MatchDetailPage({ matchId }: MatchDetailPageProps) {
         toast.success("Pertandingan dibuka kembali (LIVE).");
         void refetch();
       },
-      onError: () => {
-        toast.error("Gagal membuka kembali pertandingan.");
+      onError: (err: unknown) => {
+        const errorResponse = err as { response?: { data?: { message?: string } }; message?: string };
+        toast.error(
+          errorResponse?.response?.data?.message || errorResponse?.message || "Gagal membuka kembali pertandingan.",
+        );
       },
     });
   };

@@ -156,6 +156,7 @@ export interface MatchBoxScore {
   home: TeamBoxScore;
   away: TeamBoxScore;
   periods: PeriodScore[];
+  periodScores: PeriodScore[];
   runningScore: RunningScoreEntry[];
   logs: SubstitutionTimeoutLog[];
 }
@@ -745,6 +746,7 @@ export function calculateMatchBoxScore(
     home,
     away,
     periods,
+    periodScores: periods,
     runningScore,
     logs,
   };

@@ -176,6 +176,7 @@ export class MatchesService {
         jerseyNumber: matchPlayers.jerseyNumber,
         isStarter: matchPlayers.isStarter,
         athleteName: athletes.fullName,
+        athleteNickname: athletes.nickname,
         sex: athletes.sex,
         status: athletes.status,
       })
@@ -221,6 +222,7 @@ export class MatchesService {
       homeTeam,
       awayTeam,
       lineup: lineupRows,
+      players: lineupRows,
       courtState,
     };
   }

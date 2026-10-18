@@ -48,8 +48,9 @@ export function QuickAddTeamModal({ open, onSuccess, onClose }: QuickAddTeamModa
           setContactInfo("");
           onClose();
         },
-        onError: () => {
-          toast.error("Gagal menambahkan tim.");
+        onError: (err: unknown) => {
+          const errorResponse = err as { response?: { data?: { message?: string } }; message?: string };
+          toast.error(errorResponse?.response?.data?.message || errorResponse?.message || "Gagal menambahkan tim.");
         },
       },
     );

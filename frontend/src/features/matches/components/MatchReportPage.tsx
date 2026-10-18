@@ -60,7 +60,8 @@ export function MatchReportPage({ matchId }: MatchReportPageProps) {
     );
   }
 
-  const { home, away, periodScores, runningScore, logs } = boxScore;
+  const { home, away, runningScore, logs } = boxScore;
+  const periodScores = boxScore.periodScores || boxScore.periods || [];
 
   return (
     <div className="flex flex-col gap-6">

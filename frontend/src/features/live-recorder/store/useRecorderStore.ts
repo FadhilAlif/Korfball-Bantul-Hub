@@ -91,7 +91,8 @@ export const useRecorderStore = create<RecorderState>((set, get) => ({
       set({ syncStatus: status, pendingCount: count });
     });
 
-    const players = (match.players || []).map((p) => ({
+    const rawPlayers = match.players || match.lineup || [];
+    const players = rawPlayers.map((p) => ({
       ...p,
       isOnCourt: p.isStarter,
       hasRedCard: false,

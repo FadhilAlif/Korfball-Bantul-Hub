@@ -80,7 +80,8 @@ export interface MatchDetail extends MatchItem {
   awayAssistantCoach?: string | null;
   sessionId?: number | null;
   notes?: string | null;
-  players: MatchPlayerItem[];
+  lineup?: MatchPlayerItem[];
+  players?: MatchPlayerItem[];
 }
 
 export interface LineupPlayerItemInput {
@@ -231,10 +232,14 @@ export interface SubstitutionTimeoutLog {
 }
 
 export interface BoxScoreData {
-  match: MatchDetail;
+  matchId?: number;
+  match?: MatchDetail;
+  homeScore?: number;
+  awayScore?: number;
   home: TeamBoxScore;
   away: TeamBoxScore;
-  periodScores: PeriodScore[];
+  periods?: PeriodScore[];
+  periodScores?: PeriodScore[];
   runningScore: RunningScoreEntry[];
   logs: SubstitutionTimeoutLog[];
 }

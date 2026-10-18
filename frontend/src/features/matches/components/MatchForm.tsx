@@ -103,8 +103,11 @@ export function MatchForm({ initialData, isEdit = false }: MatchFormProps) {
           toast.success("Pertandingan berhasil diperbarui.");
           router.push(`/matches/${initialData.id}`);
         },
-        onError: () => {
-          toast.error("Gagal memperbarui pertandingan.");
+        onError: (err: unknown) => {
+          const errorResponse = err as { response?: { data?: { message?: string } }; message?: string };
+          toast.error(
+            errorResponse?.response?.data?.message || errorResponse?.message || "Gagal memperbarui pertandingan.",
+          );
         },
       });
     } else {
@@ -113,8 +116,11 @@ export function MatchForm({ initialData, isEdit = false }: MatchFormProps) {
           toast.success("Pertandingan berhasil dibuat.");
           router.push(`/matches/${res.data.id}`);
         },
-        onError: () => {
-          toast.error("Gagal membuat pertandingan.");
+        onError: (err: unknown) => {
+          const errorResponse = err as { response?: { data?: { message?: string } }; message?: string };
+          toast.error(
+            errorResponse?.response?.data?.message || errorResponse?.message || "Gagal membuat pertandingan.",
+          );
         },
       });
     }

@@ -54,8 +54,9 @@ export function QuickAddAthleteModal({ open, teamId, teamName, onSuccess, onClos
           setJerseyNumber(0);
           onClose();
         },
-        onError: () => {
-          toast.error("Gagal menambahkan atlet.");
+        onError: (err: unknown) => {
+          const errorResponse = err as { response?: { data?: { message?: string } }; message?: string };
+          toast.error(errorResponse?.response?.data?.message || errorResponse?.message || "Gagal menambahkan atlet.");
         },
       },
     );
