@@ -6,7 +6,7 @@ import type { VariantProps } from "tailwind-variants";
 import {
   Avatar,
   Badge,
-  badgeVariants,
+  type badgeVariants,
   TableCell,
   TableEmptyRow,
   TableHeader,
