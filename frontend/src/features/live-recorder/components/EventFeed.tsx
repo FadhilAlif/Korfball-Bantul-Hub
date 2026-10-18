@@ -44,6 +44,14 @@ const ACTION_LABELS: Record<string, { label: string; color: string }> = {
     label: "Intercept (IT)",
     color: "bg-indigo-500/15 text-indigo-700 dark:text-indigo-400 border-indigo-500/30",
   },
+  TURNOVER: {
+    label: "Turnover (TOV)",
+    color: "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30",
+  },
+  TEAM_TURNOVER: {
+    label: "Team Turnover (TOVT)",
+    color: "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30",
+  },
   TURNOVER_PERSONAL: {
     label: "Turnover (TOV)",
     color: "bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-500/30",

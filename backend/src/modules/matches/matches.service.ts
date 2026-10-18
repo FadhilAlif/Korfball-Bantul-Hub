@@ -919,6 +919,20 @@ export class MatchesService {
       .where(and(eq(matchEvents.id, eventId), eq(matchEvents.matchId, matchId), isNull(matchEvents.deletedAt)));
 
     if (!event) {
+      const [alreadyDeleted] = await this.db
+        .select({ id: matchEvents.id })
+        .from(matchEvents)
+        .where(and(eq(matchEvents.id, eventId), eq(matchEvents.matchId, matchId)));
+
+      if (alreadyDeleted) {
+        return {
+          success: true,
+          deletedEventId: eventId,
+          homeScore: match.homeScore,
+          awayScore: match.awayScore,
+        };
+      }
+
       throw new NotFoundException(`Event #${eventId} tidak ditemukan.`);
     }
 

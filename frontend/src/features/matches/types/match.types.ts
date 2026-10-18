@@ -16,6 +16,8 @@ export type MatchEventType =
   | "DECK"
   | "ASSIST"
   | "INTERCEPT"
+  | "TURNOVER"
+  | "TEAM_TURNOVER"
   | "TURNOVER_PERSONAL"
   | "TURNOVER_TEAM"
   | "FOUL"

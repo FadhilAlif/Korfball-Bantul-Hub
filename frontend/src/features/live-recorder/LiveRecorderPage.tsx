@@ -39,6 +39,7 @@ export function LiveRecorderPage({ matchId }: LiveRecorderPageProps) {
     events,
     syncStatus,
     pendingCount,
+    outbox,
     showAssistSheetForEventId,
     showAssistScorerSide,
     showShotZoneModal,
@@ -226,7 +227,7 @@ export function LiveRecorderPage({ matchId }: LiveRecorderPageProps) {
   const handleTeamTurnover = useCallback(async () => {
     try {
       await recordEvent({
-        type: "TURNOVER_TEAM",
+        type: "TEAM_TURNOVER",
         side: selectedSide,
         matchPlayerId: null,
         clockSeconds: clock.remainingSeconds,
@@ -307,13 +308,22 @@ export function LiveRecorderPage({ matchId }: LiveRecorderPageProps) {
     if (!latestEvent) return;
 
     try {
-      await matchesApi.deleteEvent(matchId, latestEvent.id);
+      if (outbox) {
+        await outbox.removeEvent(latestEvent.id);
+      }
+      await matchesApi.deleteEvent(matchId, latestEvent.id).catch((err: unknown) => {
+        const axiosErr = err as { response?: { status?: number } };
+        // If event was not yet stored on server (e.g. 404), safely ignore
+        if (axiosErr?.response?.status !== 404) {
+          throw err;
+        }
+      });
       undoLastEvent(latestEvent.id);
       toast.info("Event terakhir dibatalkan (undo).");
     } catch {
       toast.error("Gagal membatalkan event.");
     }
-  }, [events, matchId, undoLastEvent]);
+  }, [events, matchId, outbox, undoLastEvent]);
 
   // Period start / end handlers
   const handleStartPeriod = useCallback(() => {

@@ -115,10 +115,15 @@ export const clockPatchSchema = z.object({
   clockRunningSince: z.coerce.date().nullable().optional(),
 });
 
+export const matchEventTypeInputSchema = z
+  .enum(matchEventTypeEnum.enumValues)
+  .or(z.literal("TURNOVER_PERSONAL").transform(() => "TURNOVER" as const))
+  .or(z.literal("TURNOVER_TEAM").transform(() => "TEAM_TURNOVER" as const));
+
 export const batchEventItemSchema = z.object({
   id: z.string().uuid(),
   side: z.enum(matchSideEnum.enumValues),
-  type: z.enum(matchEventTypeEnum.enumValues),
+  type: matchEventTypeInputSchema,
   matchPlayerId: z.coerce.number().int().positive().optional().nullable(),
   subInPlayerId: z.coerce.number().int().positive().optional().nullable(),
   relatedEventId: z.string().uuid().optional().nullable(),
@@ -137,7 +142,7 @@ export const batchEventsSchema = z.object({
 export const updateEventSchema = z.object({
   matchPlayerId: z.coerce.number().int().positive().optional().nullable(),
   subInPlayerId: z.coerce.number().int().positive().optional().nullable(),
-  type: z.enum(matchEventTypeEnum.enumValues).optional(),
+  type: matchEventTypeInputSchema.optional(),
   shotSector: z.coerce.number().int().min(1).max(8).optional().nullable(),
   shotDistanceZone: z.coerce.number().int().min(1).max(6).optional().nullable(),
   note: z.string().max(250).optional().nullable(),

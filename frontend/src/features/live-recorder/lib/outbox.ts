@@ -121,6 +121,17 @@ export class LiveRecorderOutbox {
     return this.inMemoryQueue.length;
   }
 
+  public async removeEvent(eventId: string): Promise<boolean> {
+    const initialLen = this.inMemoryQueue.length;
+    this.inMemoryQueue = this.inMemoryQueue.filter((item) => item.id !== eventId);
+    if (this.inMemoryQueue.length !== initialLen) {
+      await this.persist();
+      this.notify();
+      return true;
+    }
+    return false;
+  }
+
   public async flush(): Promise<BatchEventsResponse | null> {
     if (this.isFlushing || this.inMemoryQueue.length === 0) {
       this.notify();
@@ -137,7 +148,16 @@ export class LiveRecorderOutbox {
 
     // Take up to 50 events in sequence (backend batch limit)
     const batch = this.inMemoryQueue.slice(0, 50);
-    const eventPayloads = batch.map((item) => item.payload);
+    // Normalize types for backwards compatibility (e.g. TURNOVER_PERSONAL -> TURNOVER)
+    const eventPayloads = batch.map((item) => {
+      let normalizedType = item.payload.type;
+      if ((normalizedType as string) === "TURNOVER_PERSONAL") normalizedType = "TURNOVER";
+      if ((normalizedType as string) === "TURNOVER_TEAM") normalizedType = "TEAM_TURNOVER";
+      return {
+        ...item.payload,
+        type: normalizedType,
+      };
+    });
 
     try {
       const response = await matchesApi.batchEvents(this.matchId, eventPayloads);
@@ -159,7 +179,25 @@ export class LiveRecorderOutbox {
     } catch (_err: unknown) {
       this.isFlushing = false;
 
-      // Increment retryCount for the batch
+      const axiosErr = _err as {
+        response?: {
+          status?: number;
+          data?: { message?: string; errors?: Array<{ field?: string; message?: string }> };
+        };
+      };
+      const status = axiosErr?.response?.status;
+
+      // 4xx errors (e.g. 400 Bad Request, Validation Error) are unrecoverable client errors.
+      // Drop the invalid batch to prevent infinite retry loops.
+      if (status && status >= 400 && status < 500) {
+        const failingIds = new Set(eventPayloads.map((e) => e.id));
+        this.inMemoryQueue = this.inMemoryQueue.filter((item) => !failingIds.has(item.id));
+        await this.persist();
+        this.notify();
+        return null;
+      }
+
+      // Increment retryCount for network or 5xx server errors
       for (const item of batch) {
         item.retryCount += 1;
       }

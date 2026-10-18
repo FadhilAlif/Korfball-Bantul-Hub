@@ -86,4 +86,23 @@ describe("LiveRecorderOutbox", () => {
     expect(lastStatus).toBe("error");
     expect(outbox.getPendingCount()).toBe(1);
   });
+
+  it("should remove event from queue when removeEvent is called", async () => {
+    vi.mocked(matchesApi.batchEvents).mockRejectedValueOnce(new Error("Network disconnect"));
+    await outbox.enqueue(sampleEvent);
+    expect(outbox.getPendingCount()).toBe(1);
+
+    const removed = await outbox.removeEvent(sampleEvent.id);
+    expect(removed).toBe(true);
+    expect(outbox.getPendingCount()).toBe(0);
+  });
+
+  it("should drop invalid batch and not retry on 4xx client validation error", async () => {
+    const error400 = { response: { status: 400, data: { message: "Validation failed" } } };
+    vi.mocked(matchesApi.batchEvents).mockRejectedValueOnce(error400);
+
+    await outbox.enqueue(sampleEvent);
+    // Queue should be purged of the invalid batch
+    expect(outbox.getPendingCount()).toBe(0);
+  });
 });

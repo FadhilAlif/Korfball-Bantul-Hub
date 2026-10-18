@@ -231,10 +231,10 @@ export const ActionPad = memo(function ActionPad({
           {/* Personal Turnover */}
           <button
             type="button"
-            onClick={() => onActionClick("TURNOVER_PERSONAL")}
+            onClick={() => onActionClick("TURNOVER")}
             className={cn(
               "flex flex-col items-center justify-center py-2 px-1 rounded-xl border text-center transition-all select-none min-h-[46px]",
-              selectedAction === "TURNOVER_PERSONAL"
+              selectedAction === "TURNOVER" || selectedAction === "TURNOVER_PERSONAL"
                 ? "bg-amber-600 text-white border-amber-700 shadow-sm ring-2 ring-amber-500/50"
                 : "bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30 hover:bg-amber-500/20 active:scale-95",
             )}

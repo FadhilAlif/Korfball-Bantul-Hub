@@ -31,7 +31,7 @@ describe("ActionPad", () => {
     // Verify Turnover
     const tovButton = screen.getByText("TOV");
     fireEvent.click(tovButton);
-    expect(onActionClick).toHaveBeenCalledWith("TURNOVER_PERSONAL");
+    expect(onActionClick).toHaveBeenCalledWith("TURNOVER");
 
     // Verify Team Turnover
     const tovtButton = screen.getByText("Team Turnover (TOVT)");
