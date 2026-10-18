@@ -818,21 +818,302 @@ Mark all notifications as read for the authenticated user.
 
 **Response 200:**
 ```json
-{ "success": true, "message": "All notifications marked as read", "data": null }
+{ "success": true, "message": "Notification marked as read", "data": null }
 ```
 
 ---
 
-### PATCH /api/notifications/:id/read
+## Korfball Hub Domain Endpoints
 
-Mark a single notification as read.
+### Teams Endpoints
 
-**Auth required:** Yes
+Base path: `/api/teams`
 
-**Response 200:**
+#### GET /api/teams
+List teams with filtering and pagination.
+- **Permission:** `teams:read`
+- **Query params:** `page`, `limit`, `search`, `isInternal`
+- **Response 200:** List of teams with metadata.
+
+#### POST /api/teams
+Create a new team.
+- **Permission:** `teams:create`
+- **Request:** `{ "name": "Kab. Sleman", "shortName": "Sleman", "isInternal": false, "region": "Sleman", "color": "#0ea5e9" }`
+
+#### GET /api/teams/:id
+Get team details by ID.
+- **Permission:** `teams:read`
+
+#### PATCH /api/teams/:id
+Update team details.
+- **Permission:** `teams:update`
+
+#### DELETE /api/teams/:id
+Soft-delete team (protected if team has associated athletes or matches).
+- **Permission:** `teams:delete`
+
+---
+
+### Athletes Endpoints
+
+Base path: `/api/athletes`
+
+#### GET /api/athletes
+List athletes with filtering (team, sex, status, search) and pagination.
+- **Permission:** `athletes:read`
+
+#### POST /api/athletes
+Create a new athlete profile.
+- **Permission:** `athletes:create`
+- **Request:**
 ```json
-{ "success": true, "message": "Notification marked as read", "data": null }
+{
+  "teamId": 1,
+  "fullName": "Budi Santoso",
+  "nickname": "Budi",
+  "sex": "MALE",
+  "jerseyNumber": 10,
+  "status": "ACTIVE"
+}
 ```
+
+#### GET /api/athletes/:id
+Get athlete details by ID including linked user account if any.
+- **Permission:** `athletes:read`
+
+#### PATCH /api/athletes/:id
+Update athlete profile.
+- **Permission:** `athletes:update`
+
+#### DELETE /api/athletes/:id
+Soft-delete athlete (protected if athlete has attendance or match participation).
+- **Permission:** `athletes:delete`
+
+#### PUT /api/athletes/:id/user
+Link an athlete profile to a registered user account (1:1 link).
+- **Permission:** `athletes:update`
+- **Request:** `{ "userId": 42 }`
+
+#### DELETE /api/athletes/:id/user
+Unlink athlete profile from user account.
+- **Permission:** `athletes:update`
+
+---
+
+### Sessions & Attendance Endpoints
+
+#### GET /api/sessions
+List training and match sessions with date and status filters.
+- **Permission:** `sessions:read`
+
+#### POST /api/sessions
+Create a training or match session. Auto-generates a 6-character alphanumeric check-in code.
+- **Permission:** `sessions:create`
+- **Request:**
+```json
+{
+  "teamId": 1,
+  "type": "TRAINING",
+  "title": "Latihan Rutin Selasa",
+  "startsAt": "2026-10-20T18:00:00+07:00",
+  "endsAt": "2026-10-20T20:00:00+07:00",
+  "venue": "GOR Sasana Krida Bantul",
+  "lateToleranceMinutes": 15
+}
+```
+
+#### POST /api/sessions/generate-routine
+Batch generate routine sessions for Tuesday (18:00–20:00 WIB) and Saturday (19:00–21:00 WIB) within a date range.
+- **Permission:** `sessions:create`
+- **Request:** `{ "startDate": "2026-11-01", "endDate": "2026-11-30" }`
+
+#### POST /api/sessions/:id/checkin-code
+Regenerate a new 6-character check-in code for an active session.
+- **Permission:** `attendance:record`
+
+#### POST /api/sessions/:id/cancel
+Cancel a scheduled session.
+- **Permission:** `sessions:update`
+
+#### GET /api/sessions/:id/attendance
+Get attendance sheet for a session with all active roster athletes and their check-in status.
+- **Permission:** `attendance:read`
+
+#### PUT /api/sessions/:id/attendance
+Bulk upsert attendance records by Official or Coach.
+- **Permission:** `attendance:record`
+- **Request:**
+```json
+{
+  "records": [
+    { "athleteId": 1, "status": "PRESENT" },
+    { "athleteId": 2, "status": "LATE", "note": "Macet di jalan" },
+    { "athleteId": 3, "status": "EXCUSED", "note": "Sakit" }
+  ]
+}
+```
+
+#### POST /api/sessions/:id/finalize
+Finalize attendance sheet for a session. Automatically marks any active roster athlete without a record as `ABSENT` (BR-07).
+- **Permission:** `attendance:record`
+
+#### POST /api/attendance/check-in
+Athlete self check-in using 6-character session code. Automatically verifies time window (startsAt - 30m to endsAt) and determines `PRESENT` vs `LATE` based on `lateToleranceMinutes`. Rate-limited to 5 incorrect attempts per 10 minutes.
+- **Permission:** `attendance:self`
+- **Request:** `{ "code": "KB8821" }`
+
+#### POST /api/sessions/:id/excuse
+Athlete submits an absence excuse with reason.
+- **Permission:** `attendance:self`
+- **Request:** `{ "reason": "Kuliah praktikum lapangan" }`
+
+#### DELETE /api/sessions/:id/excuse
+Athlete cancels previously submitted excuse.
+- **Permission:** `attendance:self`
+
+#### GET /api/attendance/me
+Athlete retrieves personal attendance history, session list, and attendance rate.
+- **Permission:** `attendance:self`
+
+#### GET /api/attendance/summary
+Official/Staff summary report of attendance across sessions and roster athletes.
+- **Permission:** `attendance:read`
+
+#### GET /api/attendance/summary/export
+Export attendance summary matrix to Excel workbook (.xlsx).
+- **Permission:** `attendance:export`
+
+---
+
+### Matches & Live Recorder Endpoints
+
+#### GET /api/matches
+List matches with filtering by status, competition, team, and date.
+- **Permission:** `matches:read`
+
+#### POST /api/matches
+Create a new match fixture.
+- **Permission:** `matches:create`
+- **Request:**
+```json
+{
+  "type": "OFFICIAL",
+  "format": "K8",
+  "homeTeamId": 1,
+  "awayTeamId": 2,
+  "competition": "Kejurda Korfball DIY 2026",
+  "scheduledAt": "2026-10-25T14:00:00+07:00",
+  "periodCount": 2,
+  "periodDurationMinutes": 25,
+  "trackShotZone": true
+}
+```
+
+#### PUT /api/matches/:id/lineup
+Set Home and Away lineup roster (starters and bench). Validates 4 Male + 4 Female starters for K8 format (BR-18).
+- **Permission:** `matches:update`
+
+#### POST /api/matches/:id/start
+Start match (transitions from `SCHEDULED` to `LIVE`).
+- **Permission:** `matches:record`
+
+#### POST /api/matches/:id/periods/:period/start
+Start a specific period.
+- **Permission:** `matches:record`
+
+#### POST /api/matches/:id/periods/:period/end
+End a specific period.
+- **Permission:** `matches:record`
+
+#### PATCH /api/matches/:id/clock
+Synchronize running clock seconds between client and server.
+- **Permission:** `matches:record`
+- **Request:** `{ "remainingSeconds": 945, "isRunning": true }`
+
+#### POST /api/matches/:id/finish
+Finish and lock match (transitions to `FINISHED`).
+- **Permission:** `matches:record`
+
+#### POST /api/matches/:id/reopen
+Reopen a finished match for corrections. SuperAdmin only.
+- **Permission:** `matches:reopen`
+
+#### POST /api/matches/:id/events/batch
+Idempotent batch ingestion of match events from client offline outbox.
+- **Permission:** `matches:record`
+- **Request:**
+```json
+{
+  "events": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "side": "HOME",
+      "type": "SHOT_MADE",
+      "matchPlayerId": 105,
+      "period": 1,
+      "clockSeconds": 600,
+      "shotSector": 3,
+      "shotDistanceZone": 2
+    }
+  ]
+}
+```
+
+#### PATCH /api/matches/:id/events/:eventId
+Edit a recorded event (change player, action type, or zone).
+- **Permission:** `matches:record`
+
+#### DELETE /api/matches/:id/events/:eventId
+Soft-delete a recorded event (triggers automatic score recalculation).
+- **Permission:** `matches:record`
+
+#### GET /api/matches/:id/events
+Get chronological stream of match events with optional `afterSeq` cursor for incremental sync.
+- **Permission:** `matches:read`
+
+#### GET /api/matches/:id/box-score
+Get full computed box score (individual player stats, team totals, period scores, running score, and substitution logs).
+- **Permission:** `matches:read`
+
+#### GET /api/matches/:id/report/export
+Export official match report to formatted multi-sheet Excel workbook (.xlsx).
+- **Permission:** `stats:export`
+
+---
+
+### Statistics Endpoints
+
+#### GET /api/stats/players
+Aggregate player leaderboard across all completed matches.
+- **Permission:** `stats:read`
+- **Query params:** `teamId`, `from`, `to`, `types`, `minGp`, `sort`, `direction`, `page`, `limit`
+- **Metrics returned:** GP, PTS, PPG, SM, SA, %FGS, RIM, RIA, %FGR, PM, PA, %P, %FG, TOT, RPG, D, AS, APG, IT, TOV, F, YC, RC, EFF, EPG.
+
+#### GET /api/stats/players/export
+Export player leaderboard to formatted Excel workbook (.xlsx).
+- **Permission:** `stats:export`
+
+#### GET /api/stats/players/:athleteId
+Get individual athlete career summary, match-by-match game logs, and chronological EFF & PTS trend.
+- **Permission:** `stats:read` (or `stats:read_own` if viewing own profile; HTTP 403 Forbidden for other athletes' profiles).
+
+#### GET /api/stats/me
+Get authenticated athlete's personal career statistics and game logs.
+- **Permission:** `stats:read_own`
+
+#### GET /api/stats/team
+Aggregate team performance metrics (W-L-D record, win rate, goals for/against, shooting accuracy percentages, action totals).
+- **Permission:** `stats:read`
+
+---
+
+### Dashboard Endpoints
+
+#### GET /api/dashboard/summary
+Role-aware dashboard summary payload.
+- **Auth required:** Yes
+- **Staff View:** Today's session with quick check-in code copy, upcoming sessions (5), active live match, 30-day team attendance rate, 90-day team record, recent matches.
+- **Athlete View:** Today's session with personal check-in state, upcoming sessions, personal 30-day attendance rate, personal career stats (GP, PTS, %FG, avg EFF), recent matches.
 
 ---
 

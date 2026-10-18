@@ -1,6 +1,6 @@
-# RBAC Boilerplate
+# Korfball Hub — Presensi & Live Game Statistics
 
-A production-ready Role-Based Access Control starter template for building dashboard applications. Ships with authentication, user management, fine-grained permissions, audit logging, and an admin UI — modern tech stack, clean code, ready to clone and customize.
+Platform terintegrasi untuk manajemen presensi latihan dan pencatatan statistik pertandingan live (*event-based*) bagi tim **Korfball Bantul**, dibangun di atas template monorepo RBAC production-ready (*NestJS 12 + Drizzle ORM + PostgreSQL / NeonDB* dan *Next.js 16 App Router + Tailwind CSS v4 + Shadcn UI*).
 
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-blue)
 ![NestJS](https://img.shields.io/badge/NestJS-12-red)
@@ -8,116 +8,139 @@ A production-ready Role-Based Access Control starter template for building dashb
 ![Drizzle](https://img.shields.io/badge/Drizzle-ORM-orange)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-NeonDB-blue)
 ![Shadcn UI](https://img.shields.io/badge/Shadcn-UI-black)
-![License](https://img.shields.io/badge/license-MIT-green)
+![PWA](https://img.shields.io/badge/PWA-Ready-green)
 
-## Features
+---
 
-- **Authentication** — Register, login, logout, forgot/reset password, email verification (via Resend SDK)
-- **Dual JWT Tokens** — Access token (15 min) + refresh token (7 days) stored in `httpOnly` cookies with DB rotation
-- **RBAC Authorization & Caching** — Fine-grained `resource:action` permissions backed by Redis / In-Memory `PermissionsCacheService` (10m TTL + automatic invalidation)
-- **Rate Limiting & Security** — Brute-force protection via `@nestjs/throttler` (60 req/min global, 5 req/min on auth endpoints) + strict HTTP security headers (`helmet` & Next.js CSP/HSTS)
-- **User Management** — CRUD users, assign multiple roles, soft delete, Excel export
-- **Role Management** — CRUD roles, assign permissions, Excel export
-- **Permission Management** — CRUD permissions in `resource:action` format
-- **Declarative Audit Logging** — Automatic action logging via `@Audit()` decorator & `AuditLogInterceptor` with sensitive-field redaction and JSONB metadata
-- **Admin Dashboard** — Full management UI built with Next.js 16 App Router & Shadcn UI
-- **Notifications** — Real-time broadcasts via Server-Sent Events (SSE)
+## 🌟 Fitur Utama
 
-## Tech Stack
+1. **Struktur 3 Role Utama**:
+   - **SuperAdmin / Manager** (`admin`): Akses penuh ke seluruh sistem, manajemen tim, atlet, sesi, pertandingan, RBAC, dan audit log.
+   - **Coach & Official** (`coach`): Mengelola sesi latihan, presensi massal, setup match, dan menjalankan live recorder di pinggir lapangan.
+   - **Athlete** (`athlete`): Self check-in mandiri dengan kode sesi 6 karakter, pengajuan izin latihan, riwayat kehadiran pribadi, dan statistik performa diri.
 
-| Layer | Technology |
+2. **Jadwal Latihan Rutin & Presensi**:
+   - Preset jadwal otomatis: **Selasa 18.00–20.00 WIB** & **Sabtu 19.00–21.00 WIB**.
+   - Batch generator sesi latihan bulanan instan (`POST /api/sessions/generate-routine`).
+   - Lembar presensi official interaktif (segmented `H/T/I/A`) dengan polling non-destruktif 10 detik.
+   - Self check-in atlet berbasis toleransi waktu server (BR-10 & BR-11) dan rate-limiting kode salah 5/10 menit.
+   - Finalisasi sesi otomatis menandai atlet aktif tanpa presensi sebagai `ABSENT` (BR-07).
+   - Export rekap presensi multi-sheet Excel (.xlsx).
+
+3. **Live Game Stat Recorder (PWA)**:
+   - Pencatatan berbasis event (*event-sourcing*): `SM`, `RIM`, `PM`, `DR`, `OR`, `D`, `AS`, `IT`, `TOV`, `F`, `YC`, `RC`, `SUBSTITUTION`, `TIMEOUT`.
+   - Layout tablet landscape 3-kolom dan mobile portrait yang responsif.
+   - **Offline Outbox (IndexedDB)**: Sinkronisasi otomatis saat online kembali dengan idempotensi penuh via UUID dari client (`ON CONFLICT DO NOTHING`).
+   - Stopwatch pertandingan bebas drift (*performance.now* synchronization).
+   - Sheet assist otomatis (auto-dismiss 4 detik) dan pemilih zona tembakan SVG (sektor 1–8 & ring 1–6).
+   - Haptic feedback & Screen Wake Lock saat mencatat pertandingan di GOR.
+
+4. **Box Score, Leaderboard & Laporan**:
+   - Box score otomatis per babak (B1/B2) dan running score teruji 100% identik dengan score sheet turnamen Korfball (Fixture Game 2 & Game 4).
+   - Laporan resmi pertandingan cetak-siap (*print-ready*) A4 landscape `@media print` dan export XLSX.
+   - Leaderboard agregat pemain (GP, PTS, PPG, %FG, RPG, APG, EFF, EPG) dengan sorting dan filter minimum GP.
+   - Profil karir atlet dengan visual tren efisiensi pertandingan (EFF trend bars) dan game log lengkap.
+   - Dashboard role-aware menyajikan kartu sesi hari ini, quick check-in code copy, dan active match score.
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Teknologi |
 |---|---|
-| **Backend** | NestJS 12, TypeScript, Modular Architecture, `@nestjs/throttler`, Helmet |
-| **ORM & Database** | Drizzle ORM + PostgreSQL / NeonDB Serverless |
-| **Caching** | Redis (`ioredis`) with automatic In-Memory fallback (10m TTL) |
+| **Backend** | NestJS 12, TypeScript (ESM via `tsx`), Express platform |
+| **Database & ORM** | PostgreSQL / NeonDB Serverless + Drizzle ORM |
+| **Caching & Invalidation** | Redis (`ioredis`) dengan fallback In-Memory (10m TTL) |
+| **Auth** | Stateless JWT (`access_token` 15m, `refresh_token` 7d) in `httpOnly` cookies |
 | **Frontend** | Next.js 16 (App Router, Turbopack), React 19, Tailwind CSS v4 |
-| **UI Components** | Shadcn UI (Radix UI primitives + CVA) |
-| **Auth** | Stateless JWT in `httpOnly` Cookies, DB Token Rotation |
-| **Email** | Resend SDK (https://resend.com) + Local Simulation Mode |
-| **API Docs** | Swagger / OpenAPI 3.0 at `/api/docs` |
-| **Validation** | Zod schemas (Backend & Frontend) |
-| **Testing** | Vitest |
+| **UI Primitives** | Shadcn UI (Radix UI primitives + CVA) |
+| **Offline Storage** | IndexedDB (`idb-keyval`) |
+| **PWA** | Web App Manifest + Service Worker + App Icons |
+| **Quality & Tests** | Biome (linter & formatter) + Vitest across all workspaces |
 
-## Quick Start
+---
 
-**Prerequisites:** Node.js 20+, PostgreSQL or NeonDB, npm
+## 🚀 Memulai (Quick Start)
 
-```bash
-npx rbac-boilerplate my-dashboard
-cd my-dashboard
-```
+### 1. Konfigurasi Environment
 
-### Setup
+Pastikan file environment telah terpasang:
+- `backend/.env` (mengarah ke NeonDB connection string dan rahasia JWT)
+- `frontend/.env.local` (`NEXT_PUBLIC_API_URL=http://localhost:3001/api`)
 
-All commands below are run from inside the `my-dashboard/` directory.
+### 2. Migrasi Database & Seeding Demo Data
 
 ```bash
-# 1. Configure environment
-cp backend/.env.example backend/.env
-cp frontend/.env.example frontend/.env.local
-# Open backend/.env and fill in DATABASE_URL (NeonDB) or local DB credentials, plus JWT secrets
-
-# 2. Install dependencies
-npm install
-
-# 3. Run database migrations & seed initial data
+# Generate & jalankan migrasi Drizzle ke PostgreSQL / NeonDB
 npm run migrate
+
+# Seed RBAC dasar (permissions & 3 roles)
 npm run seed
-npm run create-admin
 
-# 4. Start the dev servers (two terminals, both inside my-dashboard/)
-npm run dev:backend   # NestJS API: http://localhost:3001
-npm run dev:frontend  # Next.js UI: http://localhost:3000
+# Seed data demo lengkap: Tim Bantul, 20 Atlet, 2 Tim Lawan, Sesi Rutin, dan Akun Demo
+npm run seed:demo
 ```
 
-Login at `http://localhost:3000/login` with the admin credentials you just created.
+### 3. Akun Demo Bawaan
 
-See [docs/SETUP.md](docs/SETUP.md) for the full step-by-step guide and troubleshooting.
+| Role | Email | Password |
+|---|---|---|
+| **SuperAdmin** | `admin@korfballbantul.id` | `AdminBantul2026!` |
+| **Coach & Official** | `coach@korfballbantul.id` | `CoachBantul2026!` |
+| **Athlete** | `athlete@korfballbantul.id` | `AthleteBantul2026!` |
 
-## Documentation
+### 4. Menjalankan Server Pengembangan
 
-| Doc | Description |
-|---|---|
-| [SETUP.md](docs/SETUP.md) | Step-by-step local setup with troubleshooting |
-| [API.md](docs/API.md) | All API endpoints with request/response examples |
-| [INTEGRATION.md](docs/INTEGRATION.md) | How to add features, protect routes, extend schema |
-| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | System design, data flow, folder structure |
+```bash
+# Terminal 1: Backend NestJS (port 3001, Swagger di http://localhost:3001/api/docs)
+npm run dev:backend
 
-Interactive API docs available at `http://localhost:3001/api/docs` (Swagger UI) once the backend is running.
-
-## Project Structure
-
-```
-rbac-boilerplate/
-├── backend/                  # NestJS API (TypeScript)
-│   ├── src/
-│   │   ├── common/           # Guards, Decorators, Interceptors, Filters, Pipes
-│   │   ├── database/         # Drizzle schema, migrations, connection provider
-│   │   └── modules/          # Auth, Users, Roles, Permissions, Dashboard, Notifications, AuditLogs
-│   ├── seeders/              # Default roles + permissions seeder
-│   └── scripts/              # Create admin script
-├── frontend/                 # Next.js 16 App Router (TypeScript)
-│   └── src/
-│       ├── app/              # Routes & layouts
-│       ├── features/         # Feature modules (auth, users, roles, permissions, etc.)
-│       └── shared/           # Shadcn UI primitives, hooks, guards, stores, utils
-└── packages/cli/             # Scaffolder CLI (npx rbac-boilerplate)
+# Terminal 2: Frontend Next.js 16 (port 3000 di http://localhost:3000)
+npm run dev:frontend
 ```
 
-## Default Roles & Permissions
+---
 
-After running `npm run seed`, the database contains:
+## 📱 Instalasi Progressive Web App (PWA)
 
-**Roles:** `admin`, `user`
+1. **Android Chrome**: Buka `http://localhost:3000` (atau URL hosting HTTPS), tekan menu browser `⋮` lalu pilih **"Install app"** atau **"Tambahkan ke Layar Utama"**.
+2. **iOS Safari**: Buka web di Safari, tekan tombol **Share** (kotak panah ke atas) lalu pilih **"Add to Home Screen"**.
+3. Aplikasi akan berjalan standalone dalam layar penuh tanpa bilah navigasi browser, mendukung offline cache shell dan outbox pencatatan pertandingan di GOR Sasana Krida.
 
-**Permissions (14):**
-`users:read`, `users:create`, `users:update`, `users:delete`,
-`roles:read`, `roles:create`, `roles:update`, `roles:delete`,
-`permissions:read`, `permissions:create`, `permissions:update`, `permissions:delete`,
-`audit_logs:read`, `notifications:create`
+---
 
-The `admin` role has all 14 permissions. The `user` role has view permissions by default.
+## 🧪 Testing & Code Quality
 
-## License
+Proyek dilengkapi dengan 60 test files (256 test cases) yang mencakup unit test kalkulator, fixture knowledge, outbox sync, RBAC permissions, dan pilot scenarios E2E.
 
-MIT
+```bash
+# Menjalankan seluruh test suites Vitest
+npm test
+
+# Menjalankan Biome check (format, lint, dan typecheck tsc)
+npm run check
+
+# Memperbaiki formatting dan lint otomatis
+npm run format:fix
+npm run lint:fix
+
+# Membangun build produksi
+npm run build:backend
+npm run build:frontend
+```
+
+---
+
+## 📄 Dokumentasi Terkait
+
+- [docs/PRD.md](docs/PRD.md) — Product Requirements Document v2.0 (Spesifikasi Bisnis & BR-01 s/d BR-30)
+- [docs/API.md](docs/API.md) — Ringkasan Kontrak API dan Endpoint Lengkap
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — Arsitektur Sistem, Model Data, dan Event Sourcing
+- [docs/PROGRESS.md](docs/PROGRESS.md) — Pelacakan Progres Pengerjaan Monorepo
+- [AGENTS.md](AGENTS.md) — Panduan Operasional AI Coding Assistant
+
+---
+
+## ⚖️ Lisensi
+
+Hak Cipta © 2026 Korfball Bantul. Dilisensikan di bawah lisensi MIT.

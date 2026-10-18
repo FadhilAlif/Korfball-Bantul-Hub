@@ -54,8 +54,14 @@ backend/
         ├── roles/             # RolesController, RolesService (CRUD, permission sync, Excel)
         ├── permissions/       # PermissionsController, PermissionsService, PermissionsCacheService
         ├── audit-logs/        # AuditLogsController, AuditLogsService (JSONB details)
-        ├── dashboard/         # DashboardController, DashboardService (stats, role counts)
-        └── notifications/     # NotificationsController, NotificationsService (SSE stream)
+        ├── dashboard/         # DashboardController, DashboardService (stats, role-aware summary)
+        ├── notifications/     # NotificationsController, NotificationsService (SSE stream)
+        ├── teams/             # TeamsController, TeamsService (CRUD, internal flag)
+        ├── athletes/          # AthletesController, AthletesService (CRUD, 1:1 user linking)
+        ├── sessions/          # SessionsController, SessionsService (CRUD, routine generator)
+        ├── attendance/        # AttendanceController, AttendanceService (bulk upsert, self check-in, excuse, rate calc)
+        ├── matches/           # MatchesController, MatchesService, Lineup, BoxScoreCalculator, OnCourtTracker
+        └── statistics/        # StatisticsController, StatisticsService (leaderboard, player profiles, team stats)
 ```
 
 ## Frontend Folder Structure
@@ -84,14 +90,22 @@ frontend/src/
 │   ├── roles/                 # Role CRUD + permission assignment
 │   ├── permissions/           # Permission CRUD
 │   ├── audit-logs/            # Audit log table + filters
-│   ├── dashboard/             # Stats cards + charts
-│   └── notifications/         # Notification list + SSE stream
+│   ├── dashboard/             # Stats cards + role-aware widgets (TodaySession, ActiveMatch, Upcoming)
+│   ├── notifications/         # Notification list + SSE stream
+│   ├── teams/                 # Team management (CRUD + internal badge)
+│   ├── athletes/              # Athlete roster (CRUD + user account linking dialog)
+│   ├── sessions/              # Session schedule + routine generator
+│   ├── attendance/            # Attendance sheet (segmented H/T/I/A), athlete self check-in & summary
+│   ├── matches/               # Match fixtures, setup wizard, and lineup editor
+│   ├── live-recorder/         # PWA recorder (action pad, timer, outbox IndexedDB, substitution dialog)
+│   └── statistics/            # Player leaderboard, player profile (EFF trend & game log), team stats
 └── shared/                    # Cross-feature utilities
     ├── components/
-    │   ├── common/            # BrandMark, NavMenu
+    │   ├── common/            # BrandMark, NavMenu, PageHeader, RefreshButton
     │   ├── guard/             # ProtectedRoute, PermissionGate
+    │   ├── layout/            # Sidebar, Header, Breadcrumb, BottomNav (mobile)
     │   └── ui/                # Shadcn UI primitives (Button, Dialog, DropdownMenu, Table, etc.)
-    ├── hooks/                 # useAuth, usePermission, useLogout
+    ├── hooks/                 # useAuth, usePermission, useLogout, useAnyPermission
     ├── lib/
     │   ├── api-client.ts      # Axios instance with auto-refresh interceptor
     │   ├── api-error.ts       # Error message parser
@@ -103,6 +117,7 @@ frontend/src/
 
 ## Database Schema (PostgreSQL / NeonDB via Drizzle ORM)
 
+### RBAC & System Tables
 ```
 users
   id, email, password_hash, full_name, is_active,
@@ -120,12 +135,6 @@ role_permissions    (junction: role_id → permission_id)
 refresh_tokens
   id, user_id, token_hash, expires_at, created_at, revoked_at
 
-email_verification_tokens
-  id, user_id, token, expires_at, created_at, used_at
-
-password_reset_tokens
-  id, user_id, token, expires_at, created_at, used_at
-
 audit_logs
   id, user_id, action, resource_type, resource_id,
   details (JSONB), ip_address, created_at
@@ -134,6 +143,56 @@ notifications
   id, title, message, type, created_by, created_at
   + notification_roles  (junction: notification_id → role_id)
   + notification_reads  (junction: notification_id → user_id, read_at)
+```
+
+### Korfball Hub Domain Tables
+```
+teams
+  id, name, short_name, is_internal, region, color,
+  created_at, updated_at, deleted_at
+
+athletes
+  id, team_id FK, user_id FK (unique nullable), full_name, nickname,
+  sex (MALE, FEMALE), jersey_number, birth_date, status (ACTIVE, INACTIVE),
+  notes, created_at, updated_at, deleted_at
+
+sessions
+  id, team_id FK, type (TRAINING, SCRIMMAGE, MATCH, OTHER), title,
+  starts_at, ends_at, venue, late_tolerance_minutes (default 15),
+  checkin_code (6 chars), status (SCHEDULED, COMPLETED, CANCELLED),
+  notes, created_by, finalized_at, finalized_by, created_at, updated_at, deleted_at
+
+attendances
+  id, session_id FK, athlete_id FK, status (PRESENT, LATE, EXCUSED, ABSENT),
+  method (MANUAL, SELF_CHECKIN, EXCUSE_REQUEST, SYSTEM),
+  checked_in_at, note, recorded_by FK, created_at, updated_at
+  (unique: session_id, athlete_id)
+
+matches
+  id, type (OFFICIAL, FRIENDLY, SCRIMMAGE), format (K8, K4),
+  home_team_id FK, away_team_id FK, home_label, away_label, home_color, away_color,
+  competition, game_number, venue, scheduled_at, period_count, period_duration_minutes,
+  track_shot_zone, status (SCHEDULED, LIVE, FINISHED, CANCELLED),
+  current_period, clock_remaining_seconds, clock_running_since,
+  home_score, away_score, jury_chair, jury_members, referees,
+  home_head_coach, home_assistant_coach, away_head_coach, away_assistant_coach,
+  session_id FK, notes, created_by, finished_at, finished_by,
+  created_at, updated_at, deleted_at
+
+match_players
+  id, match_id FK, athlete_id FK, side (HOME, AWAY),
+  jersey_number, is_starter, created_at, updated_at
+  (unique: match_id, athlete_id)
+
+match_events
+  id (UUID PK from client), seq (bigserial order), match_id FK, side (HOME, AWAY),
+  type (SHOT_MADE, SHOT_MISSED, RUNNING_IN_MADE, RUNNING_IN_MISSED,
+        PENALTY_MADE, PENALTY_MISSED, REBOUND_DEF, REBOUND_OFF, DECK,
+        ASSIST, INTERCEPT, TURNOVER, TEAM_TURNOVER, FOUL,
+        YELLOW_CARD, RED_CARD, TIMEOUT, SUBSTITUTION),
+  match_player_id FK, sub_in_player_id FK, related_event_id,
+  period, clock_seconds, shot_sector (1..8), shot_distance_zone (1..6),
+  note, client_recorded_at, created_by FK, created_at, deleted_at, deleted_by
 ```
 
 ## Auth Flow
@@ -234,3 +293,49 @@ Incoming HTTP Request
         → Maps NestJS / Drizzle / Zod errors into standard error response:
           { success: false, message: string, errors?: Record<string, string[]> }
 ```
+
+## Match Engine & Offline Outbox Architecture
+
+```
+┌────────────────────────────────────────────────────────┐
+│                   Live Recorder UI                     │
+│  - On-Court Grid (8 starters + bench)                  │
+│  - ActionPad (SM, RIM, PM, DR, OR, D, AS, IT, TOV, ...)│
+│  - Drift-Free Stopwatch (performance.now sync)         │
+│  - Haptic feedback & Screen Wake Lock                  │
+└──────────────────────────┬─────────────────────────────┘
+                           │ 1. Record event locally
+                           ▼
+┌────────────────────────────────────────────────────────┐
+│             IndexedDB Outbox (idb-keyval)              │
+│  - Client generates UUID v4 for each event             │
+│  - Enqueue offline immediately                         │
+│  - Auto-retry with exponential backoff (1s → 30s)      │
+│  - Online event listener triggers immediate flush      │
+└──────────────────────────┬─────────────────────────────┘
+                           │ 2. POST /api/matches/:id/events/batch
+                           ▼
+┌────────────────────────────────────────────────────────┐
+│                 NestJS Backend Engine                  │
+│  - Idempotent Ingestion: ON CONFLICT DO NOTHING by ID  │
+│  - Server assigns monotonic sequence (bigserial `seq`) │
+│  - Validates eligibility & red-card status (BR-22, 23) │
+│  - Atomic score recalculation transaction (BR-24)      │
+└──────────────────────────┬─────────────────────────────┘
+                           │ 3. Compute stats
+                           ▼
+┌────────────────────────────────────────────────────────┐
+│              Pure Function Calculators                 │
+│  - box-score.calculator.ts (Box score, periods, EFF)   │
+│  - on-court.ts (Chronological court presence tracker)  │
+│  - attendance.calculator.ts (Attendance rate BR-13)    │
+└────────────────────────────────────────────────────────┘
+```
+
+## Progressive Web App (PWA) Architecture
+
+- **Manifest**: Generated dynamically via `app/manifest.ts` providing standalone app metadata, theme color (`#3981f6`), and high-res adaptive/maskable icons.
+- **Service Worker**: `public/sw.js` pre-caches application shell and offline fallback (`/offline`), serving static assets cache-first while strictly bypassing API routes (`/api/*`) and SSE real-time streams.
+- **Registration**: Managed via client component `ServiceWorkerRegister.tsx` on root dashboard layout.
+- **Outbox Storage**: IndexedDB storage layer isolated per browser context, preventing data loss when venue network connectivity drops.
+
