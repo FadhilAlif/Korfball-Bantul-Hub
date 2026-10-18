@@ -3,7 +3,7 @@ import { Spinner } from "@/shared/components/ui";
 
 interface StatCardProps {
   label: string;
-  value: number;
+  value: string | number;
   delta?: string;
   sub?: string;
   icon: ReactNode;
@@ -26,7 +26,9 @@ export const StatCard = memo(function StatCard({ label, value, delta, sub, icon,
       ) : isError ? (
         <span className="text-[26px] font-semibold leading-none tracking-tight text-muted-foreground">—</span>
       ) : (
-        <div className="text-[30px] font-semibold leading-none tracking-tight">{value.toLocaleString()}</div>
+        <div className="text-[24px] sm:text-[28px] font-semibold leading-none tracking-tight">
+          {typeof value === "number" ? value.toLocaleString() : value}
+        </div>
       )}
 
       <div className="flex items-center justify-between text-xs text-muted-foreground">

@@ -749,3 +749,5 @@ export function calculateMatchBoxScore(
     logs,
   };
 }
+
+export { calculateMatchBoxScore as calculateBoxScore };

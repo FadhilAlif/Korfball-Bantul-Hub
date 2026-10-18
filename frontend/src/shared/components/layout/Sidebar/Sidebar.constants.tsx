@@ -42,6 +42,18 @@ export const NAV_CONFIG: NavEntry[] = [
     permission: "matches:read",
   },
   {
+    href: "/stats",
+    label: "Statistik",
+    icon: <BarChart3 size={18} />,
+    permission: "stats:read",
+  },
+  {
+    href: "/stats/me",
+    label: "Statistik Saya",
+    icon: <BarChart3 size={18} />,
+    permission: "stats:read_own",
+  },
+  {
     href: "/athletes",
     label: "Atlet",
     icon: <UserCheck size={18} />,

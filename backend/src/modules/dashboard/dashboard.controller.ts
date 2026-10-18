@@ -1,8 +1,10 @@
 import { Controller, Get, Inject, Res, StreamableFile, UseGuards } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import type { Response } from "express";
-import { DashboardService } from "./dashboard.service.js";
+import { CurrentUser } from "../../common/decorators/current-user.decorator.js";
 import { JwtAuthGuard } from "../../common/guards/jwt-auth.guard.js";
+import type { AuthenticatedUser } from "../../common/types/authenticated-user.type.js";
+import { DashboardService } from "./dashboard.service.js";
 
 @ApiTags("Dashboard")
 @Controller("api/dashboard")
@@ -12,6 +14,12 @@ export class DashboardController {
     @Inject(DashboardService)
     private readonly dashboardService: DashboardService,
   ) {}
+
+  @Get("summary")
+  async getDashboardSummary(@CurrentUser() user: AuthenticatedUser) {
+    const summary = await this.dashboardService.getDashboardSummary(user);
+    return { data: summary };
+  }
 
   @Get("stats")
   async getStats() {

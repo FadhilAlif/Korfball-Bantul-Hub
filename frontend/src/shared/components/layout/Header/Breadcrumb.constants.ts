@@ -6,6 +6,8 @@ export const ROUTE_LABELS: Record<string, string> = {
   "/attendance/me": "Kehadiran Saya",
   "/attendance/summary": "Rekap Presensi",
   "/matches": "Pertandingan",
+  "/stats": "Statistik",
+  "/stats/me": "Statistik Saya",
   "/users": "Users",
   "/roles": "Roles",
   "/permissions": "Permissions",
