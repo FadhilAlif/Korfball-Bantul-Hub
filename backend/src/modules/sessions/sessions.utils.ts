@@ -12,7 +12,8 @@ export function generateCheckinCode(length = 6): string {
   const bytes = crypto.randomBytes(length);
   let code = "";
   for (let i = 0; i < length; i++) {
-    code += CHECKIN_ALPHABET[bytes[i] % CHECKIN_ALPHABET.length];
+    const byte = bytes[i] ?? 0;
+    code += CHECKIN_ALPHABET[byte % CHECKIN_ALPHABET.length];
   }
   return code;
 }
@@ -45,8 +46,16 @@ export function toWibParts(date: Date): {
  * Creates a Date from date string (YYYY-MM-DD) and time string (HH:mm) in WIB (UTC+7)
  */
 export function createWibDate(dateStr: string, timeStr: string): Date {
-  const [year, month, day] = dateStr.split("-").map(Number);
-  const [hour, minute] = timeStr.split(":").map(Number);
+  const parts = dateStr.split("-").map(Number);
+  const timeParts = timeStr.split(":").map(Number);
+
+  const year = parts[0] ?? 2026;
+  const month = parts[1] ?? 1;
+  const day = parts[2] ?? 1;
+
+  const hour = timeParts[0] ?? 0;
+  const minute = timeParts[1] ?? 0;
+
   // UTC+7 timestamp:
   return new Date(Date.UTC(year, month - 1, day, hour - 7, minute, 0, 0));
 }

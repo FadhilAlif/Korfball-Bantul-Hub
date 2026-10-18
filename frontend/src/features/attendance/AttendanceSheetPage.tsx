@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, CheckCheck, CheckCircle2, KeyRound, Lock, MapPin, Maximize2, RotateCcw, Save } from "lucide-react";
+import { ArrowLeft, CheckCheck, KeyRound, Lock, Maximize2, RotateCcw, Save } from "lucide-react";
 import Link from "next/link";
 import { PageHeader, RefreshButton, SearchInput } from "@/shared/components/common";
 import { Avatar, Badge, Button, buttonVariants, Input } from "@/shared/components/ui";

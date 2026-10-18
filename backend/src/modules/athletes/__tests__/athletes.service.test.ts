@@ -81,7 +81,7 @@ describe("AthletesService & Business Rules (BR-01, BR-02, BR-03, BR-04)", () => 
       },
       { type: "body" } as never,
     );
-    expect(valid.jerseyNumber).toBe(12);
+    expect((valid as { jerseyNumber: number }).jerseyNumber).toBe(12);
   });
 
   it("BR-01: throws BadRequestException (400) when linking a user account to an opponent team athlete", async () => {

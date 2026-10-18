@@ -127,6 +127,10 @@ export class TeamsService {
       })
       .returning();
 
+    if (!created) {
+      throw new ConflictException("Gagal membuat tim.");
+    }
+
     return {
       id: created.id,
       name: created.name,

@@ -73,17 +73,21 @@ describe("SessionsService & Utils", () => {
 
     await expect(
       service.createSession({
+        type: "TRAINING",
         title: "Latihan",
         startsAt: "2026-10-20T18:00:00Z",
         endsAt: "2026-10-20T18:00:00Z", // same time
+        lateToleranceMinutes: 15,
       }),
     ).rejects.toThrow(BadRequestException);
 
     await expect(
       service.createSession({
+        type: "TRAINING",
         title: "Latihan",
         startsAt: "2026-10-20T19:00:00Z",
         endsAt: "2026-10-20T18:00:00Z", // ends before start
+        lateToleranceMinutes: 15,
       }),
     ).rejects.toThrow("Jam selesai harus setelah jam mulai.");
   });

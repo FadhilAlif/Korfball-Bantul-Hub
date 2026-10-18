@@ -5,7 +5,7 @@ import {
   type NestInterceptor,
   StreamableFile,
 } from "@nestjs/common";
-import { type Observable } from "rxjs";
+import type { Observable } from "rxjs";
 import { map } from "rxjs/operators";
 
 export interface ApiResponse<T> {

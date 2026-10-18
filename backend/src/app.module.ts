@@ -14,6 +14,7 @@ import { TeamsModule } from "./modules/teams/teams.module.js";
 import { AthletesModule } from "./modules/athletes/athletes.module.js";
 import { SessionsModule } from "./modules/sessions/sessions.module.js";
 import { AttendanceModule } from "./modules/attendance/attendance.module.js";
+import { MatchesModule } from "./modules/matches/matches.module.js";
 import { Public } from "./common/decorators/public.decorator.js";
 import { AppThrottlerGuard } from "./common/guards/throttler.guard.js";
 import { AuditLogInterceptor } from "./common/interceptors/audit-log.interceptor.js";
@@ -54,6 +55,7 @@ export class AppController {
     AthletesModule,
     SessionsModule,
     AttendanceModule,
+    MatchesModule,
   ],
   controllers: [AppController],
   providers: [

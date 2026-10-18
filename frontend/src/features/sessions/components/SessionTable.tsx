@@ -140,12 +140,12 @@ export const SessionTable = memo(function SessionTable({
                       </MenuItem>
                     )}
                     {canEdit && s.status === "SCHEDULED" && (
-                      <MenuItem icon={<Ban size={14} />} variant="danger" onClick={() => onCancel(s)}>
+                      <MenuItem icon={<Ban size={14} />} destructive onClick={() => onCancel(s)}>
                         Batalkan Sesi
                       </MenuItem>
                     )}
                     {canDelete && (
-                      <MenuItem icon={<Trash2 size={14} />} variant="danger" onClick={() => onDelete(s)}>
+                      <MenuItem icon={<Trash2 size={14} />} destructive onClick={() => onDelete(s)}>
                         Hapus Sesi
                       </MenuItem>
                     )}
@@ -220,12 +220,12 @@ export const SessionTable = memo(function SessionTable({
                           </MenuItem>
                         )}
                         {canEdit && s.status === "SCHEDULED" && (
-                          <MenuItem icon={<Ban size={14} />} variant="danger" onClick={() => onCancel(s)}>
+                          <MenuItem icon={<Ban size={14} />} destructive onClick={() => onCancel(s)}>
                             Batalkan Sesi
                           </MenuItem>
                         )}
                         {canDelete && (
-                          <MenuItem icon={<Trash2 size={14} />} variant="danger" onClick={() => onDelete(s)}>
+                          <MenuItem icon={<Trash2 size={14} />} destructive onClick={() => onDelete(s)}>
                             Hapus Sesi
                           </MenuItem>
                         )}

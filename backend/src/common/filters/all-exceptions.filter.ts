@@ -44,7 +44,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
     let message = "An unexpected error occurred. Please try again.";
-    let errors: unknown = undefined;
+    let errors: unknown;
 
     if (isHttpExceptionLike(exception)) {
       status = exception.getStatus();

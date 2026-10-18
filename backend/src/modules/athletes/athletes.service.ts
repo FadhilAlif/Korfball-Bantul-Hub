@@ -211,6 +211,10 @@ export class AthletesService {
       await this.permissionsCacheService?.invalidateUser(input.userId);
     }
 
+    if (!created) {
+      throw new NotFoundException("Gagal membuat profil atlet.");
+    }
+
     return this.getAthlete(created.id);
   }
 

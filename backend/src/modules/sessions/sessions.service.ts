@@ -218,6 +218,10 @@ export class SessionsService {
       })
       .returning({ id: sessions.id });
 
+    if (!created) {
+      throw new NotFoundException("Gagal membuat sesi latihan.");
+    }
+
     return this.getSession(created.id);
   }
 
@@ -442,6 +446,10 @@ export class SessionsService {
         createdBy: userId ?? null,
       })
       .returning({ id: sessions.id });
+
+    if (!created) {
+      throw new NotFoundException("Gagal membuat sesi rutin.");
+    }
 
     return this.getSession(created.id);
   }

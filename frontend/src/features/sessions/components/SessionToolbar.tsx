@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarPlus2, Plus, Sparkles } from "lucide-react";
+import { Plus, Sparkles } from "lucide-react";
 import type { ReactNode } from "react";
 import { memo } from "react";
 import { FilterDropdown, RefreshButton } from "@/shared/components/common";

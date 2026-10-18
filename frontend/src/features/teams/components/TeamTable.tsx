@@ -74,7 +74,7 @@ export const TeamTable = memo(function TeamTable({
                       </MenuItem>
                     )}
                     {canDelete && (
-                      <MenuItem icon={<Trash2 size={14} />} variant="danger" onClick={() => onDelete(team)}>
+                      <MenuItem icon={<Trash2 size={14} />} destructive onClick={() => onDelete(team)}>
                         Hapus Tim
                       </MenuItem>
                     )}

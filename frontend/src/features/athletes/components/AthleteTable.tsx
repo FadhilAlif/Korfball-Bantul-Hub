@@ -90,7 +90,7 @@ export const AthleteTable = memo(function AthleteTable({
                     </MenuItem>
                   )}
                   {canDelete && (
-                    <MenuItem icon={<Trash2 size={14} />} variant="danger" onClick={() => onDelete(athlete)}>
+                    <MenuItem icon={<Trash2 size={14} />} destructive onClick={() => onDelete(athlete)}>
                       Hapus Atlet
                     </MenuItem>
                   )}
@@ -178,7 +178,7 @@ export const AthleteTable = memo(function AthleteTable({
                         </MenuItem>
                       )}
                       {canDelete && (
-                        <MenuItem icon={<Trash2 size={14} />} variant="danger" onClick={() => onDelete(athlete)}>
+                        <MenuItem icon={<Trash2 size={14} />} destructive onClick={() => onDelete(athlete)}>
                           Hapus Atlet
                         </MenuItem>
                       )}
