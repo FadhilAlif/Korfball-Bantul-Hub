@@ -54,4 +54,17 @@ describe("BottomNav", () => {
     fireEvent.click(menuBtn);
     expect(onOpenMenu).toHaveBeenCalledTimes(1);
   });
+
+  it("renders correctly without error when user is null (logged out or initializing)", () => {
+    useAuthStore.setState({
+      user: null,
+      isAuthenticated: false,
+    });
+
+    render(<BottomNav />);
+
+    expect(screen.getByText("Dashboard")).toBeInTheDocument();
+    expect(screen.queryByText("Presensi")).not.toBeInTheDocument();
+    expect(screen.queryByText("Kehadiran")).not.toBeInTheDocument();
+  });
 });

@@ -30,9 +30,12 @@ interface BottomNavProps {
   onOpenMenu?: () => void;
 }
 
+const EMPTY_PERMISSIONS: string[] = [];
+
 export const BottomNav = memo(function BottomNav({ onOpenMenu }: BottomNavProps) {
   const pathname = usePathname();
-  const permissions = useAuthStore((s) => s.user?.permissions ?? []);
+  const userPermissions = useAuthStore((s) => s.user?.permissions);
+  const permissions = userPermissions ?? EMPTY_PERMISSIONS;
 
   const visibleItems = BOTTOM_NAV_ITEMS.filter(
     (item) => item.permission === null || permissions.includes(item.permission),
