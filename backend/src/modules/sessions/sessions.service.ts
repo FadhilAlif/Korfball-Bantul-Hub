@@ -16,7 +16,7 @@ import type {
   ListSessionsQuery,
   UpdateSessionInput,
 } from "./sessions.schemas.js";
-import { createWibDate, generateCheckinCode, toWibParts } from "./sessions.utils.js";
+import { createWibDate, generateCheckinCode, parseWibDateRange, toWibParts } from "./sessions.utils.js";
 
 export interface AttendanceCountsSummary {
   present: number;
@@ -70,12 +70,13 @@ export class SessionsService {
       conditions.push(eq(sessions.status, query.status));
     }
 
-    if (query.from) {
-      conditions.push(gte(sessions.startsAt, new Date(query.from)));
+    const { fromDate, toDate } = parseWibDateRange(query.from, query.to);
+    if (fromDate) {
+      conditions.push(gte(sessions.startsAt, fromDate));
     }
 
-    if (query.to) {
-      conditions.push(lte(sessions.endsAt, new Date(query.to)));
+    if (toDate) {
+      conditions.push(lte(sessions.endsAt, toDate));
     }
 
     const whereClause = and(...conditions);

@@ -59,3 +59,33 @@ export function createWibDate(dateStr: string, timeStr: string): Date {
   // UTC+7 timestamp:
   return new Date(Date.UTC(year, month - 1, day, hour - 7, minute, 0, 0));
 }
+
+/**
+ * Safely parses a `from` and `to` query string, interpreting date-only strings (YYYY-MM-DD)
+ * as the full calendar day in WIB (00:00:00.000 to 23:59:59.999).
+ */
+export function parseWibDateRange(
+  from?: string,
+  to?: string,
+): { fromDate?: Date | undefined; toDate?: Date | undefined } {
+  let fromDate: Date | undefined;
+  let toDate: Date | undefined;
+
+  if (from) {
+    if (from.length === 10 && /^\d{4}-\d{2}-\d{2}$/.test(from)) {
+      fromDate = new Date(`${from}T00:00:00+07:00`);
+    } else {
+      fromDate = new Date(from);
+    }
+  }
+
+  if (to) {
+    if (to.length === 10 && /^\d{4}-\d{2}-\d{2}$/.test(to)) {
+      toDate = new Date(`${to}T23:59:59.999+07:00`);
+    } else {
+      toDate = new Date(to);
+    }
+  }
+
+  return { fromDate, toDate };
+}

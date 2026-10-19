@@ -3,6 +3,7 @@
 import { ArrowLeft, Award, ChevronRight, Flame, Shield, Target, User } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/shared/components/ui/badge";
+import { formatWibDate } from "@/shared/lib/format-date";
 import type { PlayerProfileStats } from "../types";
 
 interface PlayerProfilePageProps {
@@ -160,7 +161,7 @@ export function PlayerProfilePage({ data, backHref = "/stats", isSelf = false }:
 
           <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2.5">
             {effTrend.map((t, idx) => {
-              const dateStr = new Date(t.scheduledAt).toLocaleDateString("id-ID", {
+              const dateStr = formatWibDate(t.scheduledAt, {
                 day: "numeric",
                 month: "short",
               });
@@ -238,7 +239,7 @@ export function PlayerProfilePage({ data, backHref = "/stats", isSelf = false }:
                 </tr>
               ) : (
                 gameLogs.map((log) => {
-                  const dateStr = new Date(log.scheduledAt).toLocaleDateString("id-ID", {
+                  const dateStr = formatWibDate(log.scheduledAt, {
                     day: "numeric",
                     month: "short",
                     year: "numeric",

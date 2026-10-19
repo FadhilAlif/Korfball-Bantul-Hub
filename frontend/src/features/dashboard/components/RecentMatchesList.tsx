@@ -2,6 +2,7 @@
 
 import { ChevronRight, Trophy } from "lucide-react";
 import Link from "next/link";
+import { formatWibDate } from "@/shared/lib/format-date";
 
 interface RecentMatchesListProps {
   matches: {
@@ -37,7 +38,7 @@ export function RecentMatchesList({ matches }: RecentMatchesListProps) {
           <div className="p-8 text-center text-xs text-muted-foreground">Belum ada pertandingan selesai.</div>
         ) : (
           matches.map((m) => {
-            const dateStr = new Date(m.scheduledAt).toLocaleDateString("id-ID", {
+            const dateStr = formatWibDate(m.scheduledAt, {
               day: "numeric",
               month: "short",
             });

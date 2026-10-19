@@ -3,6 +3,7 @@
 import { Calendar, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/shared/components/ui/badge";
+import { formatWibDate, formatWibTime } from "@/shared/lib/format-date";
 
 interface UpcomingSessionsListProps {
   sessions: {
@@ -40,21 +41,13 @@ export function UpcomingSessionsList({ sessions }: UpcomingSessionsListProps) {
           </div>
         ) : (
           sessions.map((s) => {
-            const dateStr = new Date(s.startsAt).toLocaleDateString("id-ID", {
+            const dateStr = formatWibDate(s.startsAt, {
               weekday: "short",
               day: "numeric",
               month: "short",
             });
-            const startTime = new Date(s.startsAt).toLocaleTimeString("id-ID", {
-              hour: "2-digit",
-              minute: "2-digit",
-              hour12: false,
-            });
-            const endTime = new Date(s.endsAt).toLocaleTimeString("id-ID", {
-              hour: "2-digit",
-              minute: "2-digit",
-              hour12: false,
-            });
+            const startTime = formatWibTime(s.startsAt);
+            const endTime = formatWibTime(s.endsAt);
 
             return (
               <div

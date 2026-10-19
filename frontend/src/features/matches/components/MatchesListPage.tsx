@@ -7,6 +7,7 @@ import { PageHeader } from "@/shared/components/common";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button, buttonVariants } from "@/shared/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select";
+import { formatWibDateTime } from "@/shared/lib/format-date";
 import { useMatches } from "../hooks/useMatches";
 import type { MatchItem } from "../types";
 
@@ -168,21 +169,7 @@ function MatchCard({ match }: { match: MatchItem }) {
   const isLive = match.status === "LIVE";
   const isFinished = match.status === "FINISHED";
   const isScheduled = match.status === "SCHEDULED";
-
-  const formatDate = (isoString: string) => {
-    try {
-      const d = new Date(isoString);
-      return d.toLocaleDateString("id-ID", {
-        weekday: "short",
-        day: "numeric",
-        month: "short",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-    } catch {
-      return isoString;
-    }
-  };
+  const formatDate = (isoString: string) => formatWibDateTime(isoString);
 
   return (
     <div className="flex flex-col justify-between p-4 rounded-2xl bg-card border border-border shadow-xs hover:border-border/80 transition-all gap-4">

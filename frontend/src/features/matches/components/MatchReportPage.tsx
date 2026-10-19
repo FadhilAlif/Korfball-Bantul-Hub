@@ -4,6 +4,7 @@ import { ArrowLeft, Download, Loader2, Printer, RefreshCw } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { Button, buttonVariants } from "@/shared/components/ui/button";
+import { formatWibDate } from "@/shared/lib/format-date";
 import { useBoxScore, useExportMatchReport, useMatch } from "../hooks/useMatches";
 import type { TeamBoxScore } from "../types";
 
@@ -24,20 +25,8 @@ export function MatchReportPage({ matchId }: MatchReportPageProps) {
     exportMutation.mutate();
   };
 
-  const formatDate = (isoString?: string) => {
-    if (!isoString) return "-";
-    try {
-      const d = new Date(isoString);
-      return d.toLocaleDateString("id-ID", {
-        weekday: "long",
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-      });
-    } catch {
-      return isoString;
-    }
-  };
+  const formatDate = (isoString?: string) =>
+    isoString ? formatWibDate(isoString, { weekday: "long", month: "long" }) : "-";
 
   if (isLoading) {
     return (

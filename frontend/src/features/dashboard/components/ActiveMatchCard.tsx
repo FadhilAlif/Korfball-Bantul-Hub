@@ -4,6 +4,7 @@ import { Calendar, ChevronRight, Play, Trophy } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
+import { formatWibDate, formatWibTime } from "@/shared/lib/format-date";
 
 interface ActiveMatchCardProps {
   match: {
@@ -25,16 +26,12 @@ export function ActiveMatchCard({ match }: ActiveMatchCardProps) {
   if (!match) return null;
 
   const isLive = match.status === "LIVE";
-  const dateStr = new Date(match.scheduledAt).toLocaleDateString("id-ID", {
+  const dateStr = formatWibDate(match.scheduledAt, {
     weekday: "short",
     day: "numeric",
     month: "short",
   });
-  const timeStr = new Date(match.scheduledAt).toLocaleTimeString("id-ID", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
+  const timeStr = formatWibTime(match.scheduledAt);
 
   return (
     <div

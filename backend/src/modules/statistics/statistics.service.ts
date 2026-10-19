@@ -11,6 +11,7 @@ import {
   type CalculatorPlayer,
   calculateBoxScore,
 } from "../matches/box-score.calculator.js";
+import { parseWibDateRange } from "../sessions/sessions.utils.js";
 import type { PlayerLeaderboardQuery, TeamStatsQuery } from "./statistics.schemas.js";
 
 export interface PlayerLeaderboardItem {
@@ -198,11 +199,12 @@ export class StatisticsService {
     // 1. Build where conditions for matches
     const matchConditions = [eq(matches.status, "FINISHED"), isNull(matches.deletedAt)];
 
-    if (query.from) {
-      matchConditions.push(gte(matches.scheduledAt, new Date(query.from)));
+    const { fromDate, toDate } = parseWibDateRange(query.from, query.to);
+    if (fromDate) {
+      matchConditions.push(gte(matches.scheduledAt, fromDate));
     }
-    if (query.to) {
-      matchConditions.push(lte(matches.scheduledAt, new Date(query.to)));
+    if (toDate) {
+      matchConditions.push(lte(matches.scheduledAt, toDate));
     }
     if (query.types) {
       const typeList = query.types
@@ -1040,11 +1042,12 @@ export class StatisticsService {
       or(eq(matches.homeTeamId, targetTeamId), eq(matches.awayTeamId, targetTeamId))!,
     ];
 
-    if (query.from) {
-      matchConditions.push(gte(matches.scheduledAt, new Date(query.from)));
+    const { fromDate, toDate } = parseWibDateRange(query.from, query.to);
+    if (fromDate) {
+      matchConditions.push(gte(matches.scheduledAt, fromDate));
     }
-    if (query.to) {
-      matchConditions.push(lte(matches.scheduledAt, new Date(query.to)));
+    if (toDate) {
+      matchConditions.push(lte(matches.scheduledAt, toDate));
     }
     if (query.types) {
       const typeList = query.types

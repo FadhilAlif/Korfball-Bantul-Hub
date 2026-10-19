@@ -1,4 +1,5 @@
 import { type TableSheet, buildWorkbook } from "../../lib/exporters/table-workbook.js";
+import { toWibParts } from "../sessions/sessions.utils.js";
 import type { MatchBoxScore, TeamBoxScore } from "./box-score.calculator.js";
 
 function teamRows(team: TeamBoxScore): (string | number | null)[][] {
@@ -112,6 +113,9 @@ export async function buildMatchReportWorkbook(
   const tables: TableSheet[] = [];
 
   // Sheet 1: Ringkasan
+  const wib = toWibParts(new Date(matchHeader.scheduledAt));
+  const wibDateStr = `${wib.year}-${String(wib.month).padStart(2, "0")}-${String(wib.day).padStart(2, "0")}`;
+
   tables.push({
     sheetName: "Ringkasan",
     tableName: "RingkasanMatch",
@@ -119,7 +123,7 @@ export async function buildMatchReportWorkbook(
     rows: [
       ["Kompetisi", matchHeader.competition ?? "-"],
       ["Nomor Game", matchHeader.gameNumber ?? "-"],
-      ["Tanggal Pertandingan", new Date(matchHeader.scheduledAt).toISOString().split("T")[0] ?? "-"],
+      ["Tanggal Pertandingan", wibDateStr],
       ["Venue / Lokasi", matchHeader.venue ?? "-"],
       ["Tim Home", boxScore.home.teamName],
       ["Tim Away", boxScore.away.teamName],

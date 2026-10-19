@@ -1,6 +1,6 @@
 import { BadRequestException, ConflictException } from "@nestjs/common";
 import { describe, expect, it, vi } from "vitest";
-import { CHECKIN_ALPHABET, generateCheckinCode, toWibParts } from "../sessions.utils.js";
+import { CHECKIN_ALPHABET, generateCheckinCode, parseWibDateRange, toWibParts } from "../sessions.utils.js";
 import { SessionsService } from "../sessions.service.js";
 
 function createMockDb(selectResponses: unknown[][] = []) {
@@ -65,6 +65,14 @@ describe("SessionsService & Utils", () => {
     expect(parts.day).toBe(20);
     expect(parts.hour).toBe(18);
     expect(parts.dayOfWeek).toBe(2); // Tuesday
+  });
+
+  it("parseWibDateRange expands date-only strings into full WIB day boundaries", () => {
+    const { fromDate, toDate } = parseWibDateRange("2026-10-19", "2026-10-19");
+    // 2026-10-19 00:00:00+07:00 === 2026-10-18 17:00:00.000Z
+    expect(fromDate?.toISOString()).toBe("2026-10-18T17:00:00.000Z");
+    // 2026-10-19 23:59:59.999+07:00 === 2026-10-19 16:59:59.999Z
+    expect(toDate?.toISOString()).toBe("2026-10-19T16:59:59.999Z");
   });
 
   it("BR-05: throws BadRequestException when endsAt is not after startsAt", async () => {

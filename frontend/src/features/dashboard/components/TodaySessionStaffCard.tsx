@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
+import { formatWibTime } from "@/shared/lib/format-date";
 
 interface TodaySessionStaffCardProps {
   session: {
@@ -45,16 +46,8 @@ export function TodaySessionStaffCard({ session }: TodaySessionStaffCardProps) {
     );
   }
 
-  const startTime = new Date(session.startsAt).toLocaleTimeString("id-ID", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
-  const endTime = new Date(session.endsAt).toLocaleTimeString("id-ID", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
+  const startTime = formatWibTime(session.startsAt);
+  const endTime = formatWibTime(session.endsAt);
 
   const handleCopyCode = () => {
     if (!session.checkinCode) return;

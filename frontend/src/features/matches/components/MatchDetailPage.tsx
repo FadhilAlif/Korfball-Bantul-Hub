@@ -17,6 +17,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button, buttonVariants } from "@/shared/components/ui/button";
+import { formatWibDateTime } from "@/shared/lib/format-date";
 import { useMatch, useReopenMatch, useStartMatch } from "../hooks/useMatches";
 import { LineupEditor } from "./LineupEditor";
 
@@ -59,22 +60,7 @@ export function MatchDetailPage({ matchId }: MatchDetailPageProps) {
     });
   };
 
-  const formatDate = (isoString?: string) => {
-    if (!isoString) return "-";
-    try {
-      const d = new Date(isoString);
-      return d.toLocaleDateString("id-ID", {
-        weekday: "long",
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
-    } catch {
-      return isoString;
-    }
-  };
+  const formatDate = (isoString?: string) => (isoString ? formatWibDateTime(isoString) : "-");
 
   if (isLoading) {
     return (

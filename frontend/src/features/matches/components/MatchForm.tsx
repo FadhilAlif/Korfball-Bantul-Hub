@@ -13,6 +13,7 @@ import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select";
 import { useCreateMatch, useUpdateMatch } from "../hooks/useMatches";
+import { fromWibDateTimeInput, toWibDateTimeInput } from "@/shared/lib/format-date";
 import { type MatchFormInput, type MatchFormOutput, createMatchFormSchema } from "../schemas/match.schema";
 import type { MatchDetail } from "../types";
 import { QuickAddTeamModal } from "./QuickAddTeamModal";
@@ -34,8 +35,8 @@ export function MatchForm({ initialData, isEdit = false }: MatchFormProps) {
   const internalTeam = teams.find((t) => t.isInternal);
 
   const defaultScheduled = initialData?.scheduledAt
-    ? new Date(initialData.scheduledAt).toISOString().slice(0, 16)
-    : new Date(Date.now() + 3600 * 1000).toISOString().slice(0, 16);
+    ? toWibDateTimeInput(initialData.scheduledAt)
+    : toWibDateTimeInput(Date.now() + 3600 * 1000);
 
   const form = useForm<MatchFormInput, unknown, MatchFormOutput>({
     resolver: zodResolver(createMatchFormSchema),
@@ -94,7 +95,7 @@ export function MatchForm({ initialData, isEdit = false }: MatchFormProps) {
   const onSubmit = (values: MatchFormOutput) => {
     const payload = {
       ...values,
-      scheduledAt: new Date(values.scheduledAt).toISOString(),
+      scheduledAt: fromWibDateTimeInput(values.scheduledAt),
     };
 
     if (isEdit && initialData) {
@@ -270,7 +271,7 @@ export function MatchForm({ initialData, isEdit = false }: MatchFormProps) {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="match-scheduled">Waktu Mulai Pertandingan *</Label>
+            <Label htmlFor="match-scheduled">Waktu Mulai Pertandingan (WIB) *</Label>
             <Input id="match-scheduled" type="datetime-local" {...form.register("scheduledAt")} required />
           </div>
 

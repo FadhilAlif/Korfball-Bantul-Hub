@@ -18,6 +18,7 @@ import {
   type MatchBoxScore,
   calculateMatchBoxScore,
 } from "./box-score.calculator.js";
+import { parseWibDateRange } from "../sessions/sessions.utils.js";
 import { buildMatchReportWorkbook } from "./matches.exporter.js";
 import type {
   BatchEventsInput,
@@ -62,12 +63,13 @@ export class MatchesService {
       conditions.push(eq(matches.status, query.status));
     }
 
-    if (query.from) {
-      conditions.push(gte(matches.scheduledAt, new Date(query.from)));
+    const { fromDate, toDate } = parseWibDateRange(query.from, query.to);
+    if (fromDate) {
+      conditions.push(gte(matches.scheduledAt, fromDate));
     }
 
-    if (query.to) {
-      conditions.push(lte(matches.scheduledAt, new Date(query.to)));
+    if (toDate) {
+      conditions.push(lte(matches.scheduledAt, toDate));
     }
 
     const whereClause = and(...conditions);
