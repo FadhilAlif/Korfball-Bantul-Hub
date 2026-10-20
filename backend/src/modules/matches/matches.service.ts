@@ -187,7 +187,7 @@ export class MatchesService {
       .where(eq(matchPlayers.matchId, id))
       .orderBy(matchPlayers.side, matchPlayers.jerseyNumber);
 
-    // Load active events for court state derivation
+    // Load active events for court state derivation & live recorder feed
     const activeEvents = await this.db
       .select({
         id: matchEvents.id,
@@ -197,8 +197,13 @@ export class MatchesService {
         type: matchEvents.type,
         matchPlayerId: matchEvents.matchPlayerId,
         subInPlayerId: matchEvents.subInPlayerId,
+        relatedEventId: matchEvents.relatedEventId,
         period: matchEvents.period,
         clockSeconds: matchEvents.clockSeconds,
+        shotSector: matchEvents.shotSector,
+        shotDistanceZone: matchEvents.shotDistanceZone,
+        note: matchEvents.note,
+        clientRecordedAt: matchEvents.clientRecordedAt,
         deletedAt: matchEvents.deletedAt,
       })
       .from(matchEvents)
@@ -226,6 +231,7 @@ export class MatchesService {
       lineup: lineupRows,
       players: lineupRows,
       courtState,
+      events: activeEvents,
     };
   }
 
@@ -546,6 +552,7 @@ export class MatchesService {
 
     const durationSeconds = match.periodDurationMinutes * 60;
     const now = new Date();
+    const hasPeriodStart = match.events.some((e) => e.type === "PERIOD_START" && e.period === periodNumber);
 
     await this.db.transaction(async (tx) => {
       await tx
@@ -559,23 +566,25 @@ export class MatchesService {
         })
         .where(eq(matches.id, id));
 
-      await tx.insert(matchEvents).values({
-        id: randomUUID(),
-        matchId: id,
-        side: "HOME",
-        type: "PERIOD_START",
-        period: periodNumber,
-        clockSeconds: durationSeconds,
-        clientRecordedAt: now,
-        createdBy: userId,
-      });
+      if (!hasPeriodStart) {
+        await tx.insert(matchEvents).values({
+          id: randomUUID(),
+          matchId: id,
+          side: "HOME",
+          type: "PERIOD_START",
+          period: periodNumber,
+          clockSeconds: durationSeconds,
+          clientRecordedAt: now,
+          createdBy: userId,
+        });
+      }
     });
 
     return this.getMatch(id);
   }
 
   /**
-   * Ends a period.
+   * Ends a period and advances to the next period if available.
    */
   async endPeriod(id: number, periodNumber: number, userId: number) {
     const match = await this.getMatch(id);
@@ -589,27 +598,34 @@ export class MatchesService {
     }
 
     const now = new Date();
+    const hasNextPeriod = periodNumber < match.periodCount;
+    const nextPeriod = hasNextPeriod ? periodNumber + 1 : periodNumber;
+    const nextClockRemainingSeconds = hasNextPeriod ? match.periodDurationMinutes * 60 : 0;
+    const hasPeriodEnd = match.events.some((e) => e.type === "PERIOD_END" && e.period === periodNumber);
 
     await this.db.transaction(async (tx) => {
       await tx
         .update(matches)
         .set({
-          clockRemainingSeconds: 0,
+          currentPeriod: nextPeriod,
+          clockRemainingSeconds: nextClockRemainingSeconds,
           clockRunningSince: null,
           updatedAt: now,
         })
         .where(eq(matches.id, id));
 
-      await tx.insert(matchEvents).values({
-        id: randomUUID(),
-        matchId: id,
-        side: "HOME",
-        type: "PERIOD_END",
-        period: periodNumber,
-        clockSeconds: 0,
-        clientRecordedAt: now,
-        createdBy: userId,
-      });
+      if (!hasPeriodEnd) {
+        await tx.insert(matchEvents).values({
+          id: randomUUID(),
+          matchId: id,
+          side: "HOME",
+          type: "PERIOD_END",
+          period: periodNumber,
+          clockSeconds: 0,
+          clientRecordedAt: now,
+          createdBy: userId,
+        });
+      }
     });
 
     return this.getMatch(id);

@@ -96,16 +96,12 @@ export function useEndPeriod(matchId: number) {
 }
 
 export function usePatchClock(matchId: number) {
-  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (payload: {
       currentPeriod?: number;
       clockRemainingSeconds?: number;
       clockRunningSince?: string | null;
     }) => matchesApi.patchClock(matchId, payload),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["matches", "detail", matchId] });
-    },
   });
 }
 

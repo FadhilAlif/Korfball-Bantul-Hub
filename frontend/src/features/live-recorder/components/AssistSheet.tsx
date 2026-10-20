@@ -15,14 +15,16 @@ interface AssistSheetProps {
 }
 
 export function AssistSheet({
-  goalEventId,
+  goalEventId: _goalEventId,
   side,
   scorerPlayerId,
   players,
   onSelectAssist,
   onDismiss,
 }: AssistSheetProps) {
-  const [secondsLeft, setSecondsLeft] = useState(4);
+  const [secondsLeft, setSecondsLeft] = useState(6);
+
+  const scorer = scorerPlayerId ? players.find((p) => p.id === scorerPlayerId) : null;
 
   // Eligible assist teammates: on-court, same side, not the scorer, no red card
   const eligibleTeammates = players.filter(
@@ -51,7 +53,11 @@ export function AssistSheet({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5 font-bold text-sm text-foreground">
             <Sparkles size={16} className="text-violet-500" />
-            <span>Gol Tercatat! Siapa pemberi Assist?</span>
+            <span>
+              Gol {side}
+              {scorer ? ` (#${scorer.jerseyNumber} ${scorer.athleteNickname || scorer.athleteName})` : ""} Tercatat!
+              Siapa pemberi Assist?
+            </span>
           </div>
 
           <div className="flex items-center gap-2">

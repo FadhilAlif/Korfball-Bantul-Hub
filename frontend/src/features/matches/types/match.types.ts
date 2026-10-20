@@ -71,6 +71,18 @@ export interface MatchItem {
   awayPlayersCount?: number;
 }
 
+export interface SideCourtState {
+  side: MatchSide;
+  onCourtPlayerIds: number[];
+  benchPlayerIds: number[];
+  redCardPlayerIds: number[];
+}
+
+export interface MatchCourtState {
+  home: SideCourtState;
+  away: SideCourtState;
+}
+
 export interface MatchDetail extends MatchItem {
   clockRunningSince?: string | null;
   juryChair?: string | null;
@@ -84,6 +96,8 @@ export interface MatchDetail extends MatchItem {
   notes?: string | null;
   lineup?: MatchPlayerItem[];
   players?: MatchPlayerItem[];
+  courtState?: MatchCourtState;
+  events?: BatchEventItem[];
 }
 
 export interface LineupPlayerItemInput {

@@ -9,6 +9,57 @@ import type {
 } from "../../matches/types";
 import { LiveRecorderOutbox } from "../lib/outbox";
 
+function buildPlayersFromMatch(match: MatchDetail): MatchPlayerItem[] {
+  const rawPlayers = match.players || match.lineup || [];
+  const courtState = match.courtState;
+
+  if (courtState) {
+    const onCourtIds = new Set([...courtState.home.onCourtPlayerIds, ...courtState.away.onCourtPlayerIds]);
+    const redCardIds = new Set([...courtState.home.redCardPlayerIds, ...courtState.away.redCardPlayerIds]);
+    return rawPlayers.map((p) => ({
+      ...p,
+      isOnCourt: onCourtIds.has(p.id),
+      hasRedCard: redCardIds.has(p.id),
+    }));
+  }
+
+  return rawPlayers.map((p) => ({
+    ...p,
+    isOnCourt: p.isStarter,
+    hasRedCard: false,
+  }));
+}
+
+function buildEventsFromMatch(match: MatchDetail, currentEvents: BatchEventItem[]): BatchEventItem[] {
+  const serverEvents = (match.events || [])
+    .filter((e) => e.type !== "PERIOD_START" && e.type !== "PERIOD_END")
+    .map((e) => ({
+      id: e.id,
+      side: e.side,
+      type: e.type,
+      matchPlayerId: e.matchPlayerId ?? null,
+      subInPlayerId: e.subInPlayerId ?? null,
+      relatedEventId: e.relatedEventId ?? null,
+      period: e.period,
+      clockSeconds: e.clockSeconds,
+      shotSector: e.shotSector ?? null,
+      shotDistanceZone: e.shotDistanceZone ?? null,
+      note: e.note ?? null,
+      clientRecordedAt:
+        typeof e.clientRecordedAt === "string"
+          ? e.clientRecordedAt
+          : e.clientRecordedAt
+            ? new Date(e.clientRecordedAt).toISOString()
+            : new Date().toISOString(),
+    }))
+    .reverse(); // Newest first for EventFeed
+
+  const serverIds = new Set(serverEvents.map((e) => e.id));
+  const unsyncedLocal = currentEvents.filter((e) => !serverIds.has(e.id));
+
+  return [...unsyncedLocal, ...serverEvents];
+}
+
 export interface RecorderState {
   match: MatchDetail | null;
   players: MatchPlayerItem[];
@@ -24,6 +75,7 @@ export interface RecorderState {
   pendingCount: number;
   showAssistSheetForEventId: string | null;
   showAssistScorerSide: MatchSide | null;
+  showAssistScorerPlayerId: number | null;
   showShotZoneModal: boolean;
   pendingShotAction: {
     type: MatchEventType;
@@ -40,7 +92,11 @@ export interface RecorderState {
   setPeriod: (period: number) => void;
   setScores: (home: number, away: number) => void;
   setSyncStatus: (status: OutboxSyncStatus, pending: number) => void;
-  setShowAssistSheetForEventId: (eventId: string | null, side?: MatchSide | null) => void;
+  setShowAssistSheetForEventId: (
+    eventId: string | null,
+    side?: MatchSide | null,
+    scorerPlayerId?: number | null,
+  ) => void;
   setShowShotZoneModal: (show: boolean) => void;
   setPendingShotAction: (action: { type: MatchEventType; side: MatchSide; matchPlayerId: number } | null) => void;
 
@@ -76,27 +132,48 @@ export const useRecorderStore = create<RecorderState>((set, get) => ({
   pendingCount: 0,
   showAssistSheetForEventId: null,
   showAssistScorerSide: null,
+  showAssistScorerPlayerId: null,
   showShotZoneModal: false,
   pendingShotAction: null,
 
   initMatch: (match: MatchDetail) => {
-    const existingOutbox = get().outbox;
-    if (existingOutbox) {
-      existingOutbox.destroy();
+    const state = get();
+
+    // If already initialized for this exact match, sync non-destructively without wiping outbox or events
+    if (state.match?.id === match.id && state.outbox !== null) {
+      const hasPending = state.outbox.getPendingCount() > 0;
+      const mergedEvents = buildEventsFromMatch(match, state.events);
+
+      set({
+        match,
+        events: mergedEvents,
+        ...(hasPending
+          ? {}
+          : {
+              homeScore: match.homeScore,
+              awayScore: match.awayScore,
+              players: buildPlayersFromMatch(match),
+            }),
+        currentPeriod: match.currentPeriod || state.currentPeriod || 1,
+      });
+      return;
+    }
+
+    if (state.outbox) {
+      state.outbox.destroy();
     }
 
     const outbox = new LiveRecorderOutbox(match.id);
-    outbox.init();
+    void outbox.init();
     outbox.subscribe((status, count) => {
       set({ syncStatus: status, pendingCount: count });
     });
+    outbox.subscribeScoreSync((homeScore, awayScore) => {
+      set({ homeScore, awayScore });
+    });
 
-    const rawPlayers = match.players || match.lineup || [];
-    const players = rawPlayers.map((p) => ({
-      ...p,
-      isOnCourt: p.isStarter,
-      hasRedCard: false,
-    }));
+    const players = buildPlayersFromMatch(match);
+    const events = buildEventsFromMatch(match, []);
 
     set({
       match,
@@ -107,7 +184,7 @@ export const useRecorderStore = create<RecorderState>((set, get) => ({
       outbox,
       selectedPlayerId: null,
       selectedAction: null,
-      events: [],
+      events,
     });
   },
 
@@ -123,27 +200,29 @@ export const useRecorderStore = create<RecorderState>((set, get) => ({
       events: [],
       selectedPlayerId: null,
       selectedAction: null,
+      showAssistSheetForEventId: null,
+      showAssistScorerSide: null,
+      showAssistScorerPlayerId: null,
     });
   },
 
   setSelectedPlayerId: (id) => {
-    const { selectedAction, players, recordEvent, match } = get();
-    set({ selectedPlayerId: id });
+    const { selectedPlayerId, players } = get();
+    // Toggle off if clicking the same player again
+    if (id !== null && selectedPlayerId === id) {
+      set({ selectedPlayerId: null });
+      return;
+    }
 
-    // If an action was already pre-selected (Action-First mode), record it now!
-    if (selectedAction && id && match) {
+    if (id !== null) {
       const player = players.find((p) => p.id === id);
       if (player) {
-        // Clear selected action & player immediately
-        set({ selectedAction: null, selectedPlayerId: null });
-        void recordEvent({
-          type: selectedAction,
-          side: player.side,
-          matchPlayerId: player.id,
-          clockSeconds: match.clockRemainingSeconds ?? 0,
-        });
+        set({ selectedPlayerId: id, selectedSide: player.side });
+        return;
       }
     }
+
+    set({ selectedPlayerId: id });
   },
 
   setSelectedSide: (side) => set({ selectedSide: side, selectedPlayerId: null }),
@@ -151,8 +230,12 @@ export const useRecorderStore = create<RecorderState>((set, get) => ({
   setPeriod: (period) => set({ currentPeriod: period }),
   setScores: (homeScore, awayScore) => set({ homeScore, awayScore }),
   setSyncStatus: (syncStatus, pendingCount) => set({ syncStatus, pendingCount }),
-  setShowAssistSheetForEventId: (eventId, side = null) =>
-    set({ showAssistSheetForEventId: eventId, showAssistScorerSide: side }),
+  setShowAssistSheetForEventId: (eventId, side = null, scorerPlayerId = null) =>
+    set({
+      showAssistSheetForEventId: eventId,
+      showAssistScorerSide: side,
+      showAssistScorerPlayerId: scorerPlayerId,
+    }),
   setShowShotZoneModal: (show) => set({ showShotZoneModal: show }),
   setPendingShotAction: (pending) => set({ pendingShotAction: pending }),
 
@@ -210,7 +293,8 @@ export const useRecorderStore = create<RecorderState>((set, get) => ({
       homeScore: nextHomeScore,
       awayScore: nextAwayScore,
       players: nextPlayers,
-      events: [newEvent, ...state.events.slice(0, 49)],
+      selectedSide: options.side,
+      events: [newEvent, ...state.events.slice(0, 99)],
       selectedPlayerId: null,
       selectedAction: null,
     }));
@@ -229,9 +313,13 @@ export const useRecorderStore = create<RecorderState>((set, get) => ({
       await outbox.enqueue(newEvent);
     }
 
-    // If it's a goal, prompt assist prompt
+    // If it's a goal, prompt assist sheet with accurate scorer info
     if (isGoal) {
-      set({ showAssistSheetForEventId: eventId, showAssistScorerSide: options.side });
+      set({
+        showAssistSheetForEventId: eventId,
+        showAssistScorerSide: options.side,
+        showAssistScorerPlayerId: options.matchPlayerId ?? null,
+      });
     }
 
     return eventId;
@@ -254,10 +342,24 @@ export const useRecorderStore = create<RecorderState>((set, get) => ({
         }
       }
 
+      let nextPlayers = state.players;
+      if (target.type === "RED_CARD" && target.matchPlayerId) {
+        nextPlayers = state.players.map((p) =>
+          p.id === target.matchPlayerId ? { ...p, hasRedCard: false, isOnCourt: true } : p,
+        );
+      } else if (target.type === "SUBSTITUTION" && target.matchPlayerId && target.subInPlayerId) {
+        nextPlayers = state.players.map((p) => {
+          if (p.id === target.matchPlayerId) return { ...p, isOnCourt: true };
+          if (p.id === target.subInPlayerId) return { ...p, isOnCourt: false };
+          return p;
+        });
+      }
+
       return {
         events: state.events.filter((e) => e.id !== eventId),
         homeScore: nextHomeScore,
         awayScore: nextAwayScore,
+        players: nextPlayers,
       };
     });
   },

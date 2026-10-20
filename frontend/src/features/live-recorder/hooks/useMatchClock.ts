@@ -3,7 +3,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 export interface UseMatchClockOptions {
+  matchId?: number;
   initialRemainingSeconds: number;
+  defaultDurationSeconds?: number;
   initialIsRunning?: boolean;
   initialRunningSince?: string | null;
   onSyncClock?: (remainingSeconds: number, isRunning: boolean) => void;
@@ -19,7 +21,9 @@ export function formatClock(seconds: number): string {
 }
 
 export function useMatchClock({
+  matchId,
   initialRemainingSeconds,
+  defaultDurationSeconds,
   initialIsRunning = false,
   initialRunningSince = null,
   onSyncClock,
@@ -27,16 +31,21 @@ export function useMatchClock({
   syncIntervalMs = 15_000,
 }: UseMatchClockOptions) {
   // Compute initial remaining based on server running time if provided
-  const calculateInitialRemaining = (): number => {
+  const calculateInitialRemaining = useCallback((): number => {
     if (initialIsRunning && initialRunningSince) {
       const elapsedSec = (Date.now() - new Date(initialRunningSince).getTime()) / 1000;
-      return Math.max(0, Math.round(initialRemainingSeconds - elapsedSec));
+      const computed = Math.max(0, Math.round(initialRemainingSeconds - elapsedSec));
+      if (computed > 0) return computed;
+    }
+    if (initialRemainingSeconds <= 0 && defaultDurationSeconds && defaultDurationSeconds > 0 && !initialIsRunning) {
+      return defaultDurationSeconds;
     }
     return Math.max(0, initialRemainingSeconds);
-  };
+  }, [initialIsRunning, initialRunningSince, initialRemainingSeconds, defaultDurationSeconds]);
 
   const [remainingSeconds, setRemainingSeconds] = useState<number>(calculateInitialRemaining);
   const [isRunning, setIsRunning] = useState<boolean>(initialIsRunning);
+  const initializedMatchIdRef = useRef<number | undefined>(matchId);
 
   const startRef = useRef<{ baseRemaining: number; startTime: number } | null>(null);
   const syncTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -49,15 +58,36 @@ export function useMatchClock({
   onPeriodZeroRef.current = onPeriodZero;
   remainingRef.current = remainingSeconds;
 
+  // Re-initialize clock once match data finishes loading from server
+  useEffect(() => {
+    if (matchId !== undefined && initializedMatchIdRef.current !== matchId) {
+      initializedMatchIdRef.current = matchId;
+      const nextRemaining = calculateInitialRemaining();
+      setRemainingSeconds(nextRemaining);
+      remainingRef.current = nextRemaining;
+      lastSyncRemainingRef.current = nextRemaining;
+      setIsRunning(Boolean(initialIsRunning && nextRemaining > 0));
+      startRef.current =
+        initialIsRunning && nextRemaining > 0 ? { baseRemaining: nextRemaining, startTime: performance.now() } : null;
+    }
+  }, [matchId, initialIsRunning, calculateInitialRemaining]);
+
   const start = useCallback(() => {
-    if (remainingRef.current <= 0) return;
+    if (remainingRef.current <= 0) {
+      if (defaultDurationSeconds && defaultDurationSeconds > 0) {
+        remainingRef.current = defaultDurationSeconds;
+        setRemainingSeconds(defaultDurationSeconds);
+      } else {
+        return;
+      }
+    }
     setIsRunning(true);
     startRef.current = {
       baseRemaining: remainingRef.current,
       startTime: performance.now(),
     };
     onSyncClockRef.current?.(remainingRef.current, true);
-  }, []);
+  }, [defaultDurationSeconds]);
 
   const pause = useCallback(() => {
     setIsRunning(false);

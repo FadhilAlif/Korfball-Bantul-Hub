@@ -108,7 +108,7 @@ export const EventFeed = memo(function EventFeed({
         <div className="text-center py-6 text-xs text-muted-foreground">Belum ada event tercatat dalam sesi ini.</div>
       ) : (
         <div className="flex flex-col gap-1.5 max-h-64 overflow-y-auto pr-1">
-          {events.slice(0, 15).map((e) => {
+          {events.slice(0, 100).map((e) => {
             const player = e.matchPlayerId ? playerMap.get(e.matchPlayerId) : null;
             const subInPlayer = e.subInPlayerId ? playerMap.get(e.subInPlayerId) : null;
             const actionDef = ACTION_LABELS[e.type] || {

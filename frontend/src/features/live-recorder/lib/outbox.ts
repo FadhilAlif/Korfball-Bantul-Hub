@@ -11,6 +11,7 @@ export interface OutboxRecord {
 }
 
 export type OutboxStatusCallback = (status: OutboxSyncStatus, pendingCount: number) => void;
+export type OutboxScoreSyncCallback = (homeScore: number, awayScore: number) => void;
 
 export class LiveRecorderOutbox {
   private matchId: number;
@@ -19,6 +20,7 @@ export class LiveRecorderOutbox {
   private isFlushing = false;
   private retryTimeout: ReturnType<typeof setTimeout> | null = null;
   private listeners: Set<OutboxStatusCallback> = new Set();
+  private scoreListeners: Set<OutboxScoreSyncCallback> = new Set();
   private isOnline = true;
   private isIndexedDbAvailable = true;
 
@@ -38,6 +40,13 @@ export class LiveRecorderOutbox {
     cb(this.getStatus(), this.inMemoryQueue.length);
     return () => {
       this.listeners.delete(cb);
+    };
+  }
+
+  public subscribeScoreSync(cb: OutboxScoreSyncCallback): () => void {
+    this.scoreListeners.add(cb);
+    return () => {
+      this.scoreListeners.delete(cb);
     };
   }
 
@@ -175,6 +184,12 @@ export class LiveRecorderOutbox {
         return this.flush();
       }
 
+      if (response && typeof response.homeScore === "number" && typeof response.awayScore === "number") {
+        for (const cb of this.scoreListeners) {
+          cb(response.homeScore, response.awayScore);
+        }
+      }
+
       return response;
     } catch (_err: unknown) {
       this.isFlushing = false;
@@ -246,5 +261,6 @@ export class LiveRecorderOutbox {
       this.retryTimeout = null;
     }
     this.listeners.clear();
+    this.scoreListeners.clear();
   }
 }

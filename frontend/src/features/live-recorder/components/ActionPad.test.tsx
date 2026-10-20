@@ -36,11 +36,43 @@ describe("ActionPad", () => {
     // Verify Team Turnover
     const tovtButton = screen.getByText("Team Turnover (TOVT)");
     fireEvent.click(tovtButton);
-    expect(onTeamTurnover).toHaveBeenCalled();
+    expect(onTeamTurnover).toHaveBeenCalledWith("HOME");
 
     // Verify Team Timeout
     const toButton = screen.getByText("Time-out Tim");
     fireEvent.click(toButton);
-    expect(onTeamTimeout).toHaveBeenCalled();
+    expect(onTeamTimeout).toHaveBeenCalledWith("HOME");
+  });
+
+  it("allows switching target side to AWAY for Team Turnover and Timeout", () => {
+    const onSelectSide = vi.fn();
+    const onTeamTurnover = vi.fn();
+    const onTeamTimeout = vi.fn();
+
+    render(
+      <ActionPad
+        hasSelectedPlayer={false}
+        selectedAction={null}
+        selectedSide="AWAY"
+        homeTeamName="Tim Kuning"
+        awayTeamName="Tim Biru"
+        onSelectSide={onSelectSide}
+        onActionClick={vi.fn()}
+        onTeamTurnover={onTeamTurnover}
+        onTeamTimeout={onTeamTimeout}
+      />,
+    );
+
+    const tovtButton = screen.getByText("Team Turnover (TOVT)");
+    fireEvent.click(tovtButton);
+    expect(onTeamTurnover).toHaveBeenCalledWith("AWAY");
+
+    const toButton = screen.getByText("Time-out Tim");
+    fireEvent.click(toButton);
+    expect(onTeamTimeout).toHaveBeenCalledWith("AWAY");
+
+    const homeSwitcher = screen.getByText("HOME (Tim Kuning)");
+    fireEvent.click(homeSwitcher);
+    expect(onSelectSide).toHaveBeenCalledWith("HOME");
   });
 });

@@ -1,9 +1,10 @@
 "use client";
 
-import { CheckCircle2, CloudAlert, CloudOff, Loader2, Pause, Play, Trophy } from "lucide-react";
+import { ArrowRight, CheckCircle2, CloudAlert, CloudOff, Loader2, Pause, Play, Trophy } from "lucide-react";
 import { memo } from "react";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
+import { cn } from "@/shared/lib/utils";
 import type { OutboxSyncStatus } from "../../matches/types";
 
 interface ScoreboardProps {
@@ -23,6 +24,7 @@ interface ScoreboardProps {
   onToggleClock: () => void;
   onStartPeriod?: () => void;
   onEndPeriod?: () => void;
+  onSelectPeriod?: (period: number) => void;
   onFinishMatch?: () => void;
 }
 
@@ -43,8 +45,12 @@ export const Scoreboard = memo(function Scoreboard({
   onToggleClock,
   onStartPeriod,
   onEndPeriod,
+  onSelectPeriod,
   onFinishMatch,
 }: ScoreboardProps) {
+  const periodNumbers = Array.from({ length: Math.max(1, totalPeriods) }, (_, i) => i + 1);
+  const hasNextPeriod = currentPeriod < totalPeriods;
+
   return (
     <header className="sticky top-0 z-30 bg-card/95 backdrop-blur-md border-b border-border shadow-xs px-3 sm:px-6 py-2 sm:py-3 transition-colors">
       <div className="flex flex-col gap-2">
@@ -166,14 +172,37 @@ export const Scoreboard = memo(function Scoreboard({
         </div>
 
         {/* Period navigation & finish trigger bar */}
-        <div className="flex items-center justify-between pt-1 border-t border-border/50 text-xs">
-          <div className="flex items-center gap-1">
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-1.5 border-t border-border/50 text-xs">
+          <div className="flex flex-wrap items-center gap-1.5">
+            {/* Period pills selector */}
+            <div className="flex items-center gap-1 bg-muted/50 p-0.5 rounded-lg border border-border/60">
+              {periodNumbers.map((p) => {
+                const isActive = p === currentPeriod;
+                return (
+                  <button
+                    type="button"
+                    key={p}
+                    onClick={() => onSelectPeriod?.(p)}
+                    className={cn(
+                      "px-2 py-0.5 rounded-md text-[11px] font-bold transition-all",
+                      isActive
+                        ? "bg-primary text-primary-foreground shadow-2xs"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted",
+                    )}
+                    title={`Pindah ke Babak ${p}`}
+                  >
+                    B{p}
+                  </button>
+                );
+              })}
+            </div>
+
             {onStartPeriod && (
               <Button
                 size="sm"
-                variant="ghost"
+                variant="outline"
                 onClick={onStartPeriod}
-                className="h-6 text-[11px] px-2 text-muted-foreground hover:text-foreground"
+                className="h-6 text-[11px] px-2.5 font-medium text-foreground"
               >
                 Mulai Babak {currentPeriod}
               </Button>
@@ -181,11 +210,16 @@ export const Scoreboard = memo(function Scoreboard({
             {onEndPeriod && (
               <Button
                 size="sm"
-                variant="ghost"
+                variant="secondary"
                 onClick={onEndPeriod}
-                className="h-6 text-[11px] px-2 text-muted-foreground hover:text-foreground"
+                className="h-6 text-[11px] px-2.5 font-semibold gap-1"
               >
-                Akhiri Babak {currentPeriod}
+                <span>
+                  {hasNextPeriod
+                    ? `Akhiri Babak ${currentPeriod} & Lanjut B${currentPeriod + 1}`
+                    : `Akhiri Babak ${currentPeriod}`}
+                </span>
+                {hasNextPeriod && <ArrowRight size={11} />}
               </Button>
             )}
           </div>

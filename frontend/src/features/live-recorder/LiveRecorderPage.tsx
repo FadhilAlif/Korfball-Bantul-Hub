@@ -8,7 +8,7 @@ import { Button } from "@/shared/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/shared/components/ui/tabs";
 import { matchesApi } from "../matches/api/matches.api";
 import { useEndPeriod, useFinishMatch, useMatch, usePatchClock, useStartPeriod } from "../matches/hooks/useMatches";
-import type { MatchEventType, MatchSide } from "../matches/types";
+import type { MatchEventType, MatchPlayerItem, MatchSide } from "../matches/types";
 import { ActionPad } from "./components/ActionPad";
 import { AssistSheet } from "./components/AssistSheet";
 import { EventFeed } from "./components/EventFeed";
@@ -17,7 +17,7 @@ import { PlayerGrid } from "./components/PlayerGrid";
 import { Scoreboard } from "./components/Scoreboard";
 import { ShotZonePicker } from "./components/ShotZonePicker";
 import { SubstitutionModal } from "./components/SubstitutionModal";
-import { useMatchClock } from "./hooks/useMatchClock";
+import { formatClock, useMatchClock } from "./hooks/useMatchClock";
 import { useRecorderStore } from "./store/useRecorderStore";
 
 interface LiveRecorderPageProps {
@@ -42,6 +42,7 @@ export function LiveRecorderPage({ matchId }: LiveRecorderPageProps) {
     outbox,
     showAssistSheetForEventId,
     showAssistScorerSide,
+    showAssistScorerPlayerId,
     showShotZoneModal,
     pendingShotAction,
     initMatch,
@@ -68,15 +69,19 @@ export function LiveRecorderPage({ matchId }: LiveRecorderPageProps) {
   const endPeriodMutation = useEndPeriod(matchId);
   const finishMatchMutation = useFinishMatch(matchId);
 
-  // Initialize store when match data loads
+  // Sync match data into store when loaded/updated
   useEffect(() => {
     if (match) {
       initMatch(match);
     }
+  }, [match, initMatch]);
+
+  // Destroy outbox and store only on component unmount
+  useEffect(() => {
     return () => {
       destroy();
     };
-  }, [match, initMatch, destroy]);
+  }, [destroy]);
 
   // Screen Wake Lock API implementation
   useEffect(() => {
@@ -126,78 +131,106 @@ export function LiveRecorderPage({ matchId }: LiveRecorderPageProps) {
 
   const handlePeriodZero = useCallback(() => {
     toast.info(`Waktu babak ${currentPeriod} habis!`, {
-      description: "Jam otomatis dijeda. Akhiri babak ini jika permainan selesai.",
+      description: "Jam otomatis dijeda. Klik tombol Akhiri Babak untuk melanjutkan.",
     });
   }, [currentPeriod]);
 
+  const periodDurationSeconds = (match?.periodDurationMinutes ?? 10) * 60;
+
   // Clock instance
   const clock = useMatchClock({
-    initialRemainingSeconds: match?.clockRemainingSeconds ?? 600,
-    initialIsRunning: Boolean(match?.clockIsRunning),
+    matchId: match?.id,
+    initialRemainingSeconds: match?.clockRemainingSeconds ?? periodDurationSeconds,
+    defaultDurationSeconds: periodDurationSeconds,
+    initialIsRunning: Boolean(match?.clockIsRunning ?? match?.clockRunningSince),
     initialRunningSince: match?.clockRunningSince,
     onSyncClock: handleSyncClock,
     onPeriodZero: handlePeriodZero,
   });
 
+  // Unified helper to execute an action for a specific player (used by both Player-First and Action-First)
+  const executePlayerAction = useCallback(
+    async (player: MatchPlayerItem, type: MatchEventType) => {
+      const isShot =
+        type === "SHOT_MADE" ||
+        type === "SHOT_MISSED" ||
+        type === "RUNNING_IN_MADE" ||
+        type === "RUNNING_IN_MISSED" ||
+        type === "PENALTY_MADE" ||
+        type === "PENALTY_MISSED";
+
+      if (isShot && match?.trackShotZone) {
+        setSelectedAction(null);
+        setSelectedPlayerId(null);
+        setPendingShotAction({
+          type,
+          side: player.side,
+          matchPlayerId: player.id,
+        });
+        setShowShotZoneModal(true);
+        return;
+      }
+
+      try {
+        await recordEvent({
+          type,
+          side: player.side,
+          matchPlayerId: player.id,
+          clockSeconds: clock.remainingSeconds,
+        });
+      } catch {
+        toast.error("Gagal mencatat aksi.");
+      }
+    },
+    [
+      match?.trackShotZone,
+      clock.remainingSeconds,
+      recordEvent,
+      setSelectedAction,
+      setSelectedPlayerId,
+      setPendingShotAction,
+      setShowShotZoneModal,
+    ],
+  );
+
+  // Player Selection Handler (supports both Player-First selection and Action-First completion)
+  const handleSelectPlayer = useCallback(
+    (playerId: number) => {
+      const player = players.find((p) => p.id === playerId);
+      if (!player) return;
+
+      if (selectedAction) {
+        void executePlayerAction(player, selectedAction);
+        return;
+      }
+
+      setSelectedPlayerId(playerId);
+    },
+    [players, selectedAction, executePlayerAction, setSelectedPlayerId],
+  );
+
   // Action Click Handler
   const handleActionClick = useCallback(
     async (type: MatchEventType) => {
-      // If a player is already selected:
       if (selectedPlayerId) {
         const player = players.find((p) => p.id === selectedPlayerId);
         if (!player) return;
-
-        const isShot =
-          type === "SHOT_MADE" ||
-          type === "SHOT_MISSED" ||
-          type === "RUNNING_IN_MADE" ||
-          type === "RUNNING_IN_MISSED" ||
-          type === "PENALTY_MADE" ||
-          type === "PENALTY_MISSED";
-
-        // If match tracks shot zones, prompt modal first
-        if (isShot && match?.trackShotZone) {
-          setPendingShotAction({
-            type,
-            side: player.side,
-            matchPlayerId: player.id,
-          });
-          setShowShotZoneModal(true);
-          return;
-        }
-
-        // Otherwise record immediately
-        try {
-          await recordEvent({
-            type,
-            side: player.side,
-            matchPlayerId: player.id,
-            clockSeconds: clock.remainingSeconds,
-          });
-        } catch {
-          toast.error("Gagal mencatat aksi.");
-        }
+        await executePlayerAction(player, type);
       } else {
-        // No player selected: enter Action-First mode
         if (selectedAction === type) {
-          setSelectedAction(null); // Deselect if tapped again
+          setSelectedAction(null);
         } else {
           setSelectedAction(type);
         }
       }
     },
-    [
-      selectedPlayerId,
-      selectedAction,
-      players,
-      match?.trackShotZone,
-      clock.remainingSeconds,
-      recordEvent,
-      setPendingShotAction,
-      setShowShotZoneModal,
-      setSelectedAction,
-    ],
+    [selectedPlayerId, selectedAction, players, executePlayerAction, setSelectedAction],
   );
+
+  const handleClearSelection = useCallback(() => {
+    setSelectedPlayerId(null);
+    setSelectedAction(null);
+  }, [setSelectedPlayerId, setSelectedAction]);
 
   // Shot zone confirmation
   const handleConfirmShotZone = useCallback(
@@ -224,34 +257,44 @@ export function LiveRecorderPage({ matchId }: LiveRecorderPageProps) {
   );
 
   // Team Turnover & Timeout handlers
-  const handleTeamTurnover = useCallback(async () => {
-    try {
-      await recordEvent({
-        type: "TEAM_TURNOVER",
-        side: selectedSide,
-        matchPlayerId: null,
-        clockSeconds: clock.remainingSeconds,
-      });
-      toast.success(`Team turnover dicatat untuk ${selectedSide}`);
-    } catch {
-      toast.error("Gagal mencatat team turnover.");
-    }
-  }, [recordEvent, selectedSide, clock.remainingSeconds]);
+  const handleTeamTurnover = useCallback(
+    async (targetSide?: MatchSide) => {
+      const side = targetSide ?? selectedSide;
+      const teamLabel = side === "HOME" ? match?.homeTeamName || "HOME" : match?.awayTeamName || "AWAY";
+      try {
+        await recordEvent({
+          type: "TEAM_TURNOVER",
+          side,
+          matchPlayerId: null,
+          clockSeconds: clock.remainingSeconds,
+        });
+        toast.success(`Team Turnover dicatat untuk ${side} (${teamLabel})`);
+      } catch {
+        toast.error("Gagal mencatat team turnover.");
+      }
+    },
+    [recordEvent, selectedSide, clock.remainingSeconds, match?.homeTeamName, match?.awayTeamName],
+  );
 
-  const handleTeamTimeout = useCallback(async () => {
-    clock.pause();
-    try {
-      await recordEvent({
-        type: "TIMEOUT",
-        side: selectedSide,
-        matchPlayerId: null,
-        clockSeconds: clock.remainingSeconds,
-      });
-      toast.success(`Time-out dicatat untuk ${selectedSide}`);
-    } catch {
-      toast.error("Gagal mencatat time-out.");
-    }
-  }, [clock, recordEvent, selectedSide]);
+  const handleTeamTimeout = useCallback(
+    async (targetSide?: MatchSide) => {
+      const side = targetSide ?? selectedSide;
+      const teamLabel = side === "HOME" ? match?.homeTeamName || "HOME" : match?.awayTeamName || "AWAY";
+      clock.pause();
+      try {
+        await recordEvent({
+          type: "TIMEOUT",
+          side,
+          matchPlayerId: null,
+          clockSeconds: clock.remainingSeconds,
+        });
+        toast.success(`Time-out dicatat untuk ${side} (${teamLabel})`);
+      } catch {
+        toast.error("Gagal mencatat time-out.");
+      }
+    },
+    [clock, recordEvent, selectedSide, match?.homeTeamName, match?.awayTeamName],
+  );
 
   // Assist selection
   const handleSelectAssist = useCallback(
@@ -302,49 +345,91 @@ export function LiveRecorderPage({ matchId }: LiveRecorderPageProps) {
     [subModalSide, recordEvent, clock.remainingSeconds, applySubstitutionLocally],
   );
 
+  // Delete any specific event or undo last event
+  const handleDeleteEvent = useCallback(
+    async (eventId: string) => {
+      try {
+        if (outbox) {
+          await outbox.removeEvent(eventId);
+        }
+        await matchesApi.deleteEvent(matchId, eventId).catch((err: unknown) => {
+          const axiosErr = err as { response?: { status?: number } };
+          if (axiosErr?.response?.status !== 404) {
+            throw err;
+          }
+        });
+        undoLastEvent(eventId);
+        toast.info("Event berhasil dibatalkan.");
+      } catch {
+        toast.error("Gagal membatalkan event.");
+      }
+    },
+    [matchId, outbox, undoLastEvent],
+  );
+
   // Undo last event
   const handleUndoLast = useCallback(async () => {
     const latestEvent = events[0];
     if (!latestEvent) return;
+    await handleDeleteEvent(latestEvent.id);
+  }, [events, handleDeleteEvent]);
 
-    try {
-      if (outbox) {
-        await outbox.removeEvent(latestEvent.id);
-      }
-      await matchesApi.deleteEvent(matchId, latestEvent.id).catch((err: unknown) => {
-        const axiosErr = err as { response?: { status?: number } };
-        // If event was not yet stored on server (e.g. 404), safely ignore
-        if (axiosErr?.response?.status !== 404) {
-          throw err;
-        }
-      });
-      undoLastEvent(latestEvent.id);
-      toast.info("Event terakhir dibatalkan (undo).");
-    } catch {
-      toast.error("Gagal membatalkan event.");
-    }
-  }, [events, matchId, outbox, undoLastEvent]);
-
-  // Period start / end handlers
+  // Period start / end / switch handlers
   const handleStartPeriod = useCallback(() => {
+    clock.setTime(periodDurationSeconds);
+    clock.start();
     startPeriodMutation.mutate(currentPeriod, {
       onSuccess: () => {
-        toast.success(`Babak ${currentPeriod} resmi dimulai.`);
+        toast.success(`Babak ${currentPeriod} resmi dimulai!`);
+      },
+      onError: () => {
+        toast.error(`Gagal memulai Babak ${currentPeriod}.`);
       },
     });
-  }, [currentPeriod, startPeriodMutation]);
+  }, [clock, currentPeriod, periodDurationSeconds, startPeriodMutation]);
 
   const handleEndPeriod = useCallback(() => {
+    const endedPeriod = currentPeriod;
+    const totalPeriods = match?.periodCount ?? 2;
+
     clock.pause();
-    endPeriodMutation.mutate(currentPeriod, {
+    endPeriodMutation.mutate(endedPeriod, {
       onSuccess: () => {
-        toast.success(`Babak ${currentPeriod} diakhiri.`);
-        if (currentPeriod < (match?.periodCount ?? 4)) {
-          setPeriod(currentPeriod + 1);
+        if (endedPeriod < totalPeriods) {
+          const nextPeriod = endedPeriod + 1;
+          setPeriod(nextPeriod);
+          clock.setTime(periodDurationSeconds);
+          toast.success(`Babak ${endedPeriod} diakhiri. Sekarang di Babak ${nextPeriod}!`, {
+            description: `Jam direset ke ${formatClock(periodDurationSeconds)}. Klik 'Mulai' untuk menjalankan Babak ${nextPeriod}.`,
+          });
+        } else {
+          clock.setTime(0);
+          toast.success(`Babak terakhir (Babak ${endedPeriod}) telah diakhiri.`, {
+            description: "Klik tombol 'Selesai' jika pertandingan telah usai.",
+          });
         }
       },
+      onError: () => {
+        toast.error(`Gagal mengakhiri Babak ${endedPeriod}.`);
+      },
     });
-  }, [clock, currentPeriod, endPeriodMutation, match?.periodCount, setPeriod]);
+  }, [clock, currentPeriod, endPeriodMutation, match?.periodCount, periodDurationSeconds, setPeriod]);
+
+  const handleSelectPeriod = useCallback(
+    (targetPeriod: number) => {
+      if (targetPeriod === currentPeriod) return;
+      clock.pause();
+      setPeriod(targetPeriod);
+      clock.setTime(periodDurationSeconds);
+      patchClockMutation.mutate({
+        currentPeriod: targetPeriod,
+        clockRemainingSeconds: periodDurationSeconds,
+        clockRunningSince: null,
+      });
+      toast.info(`Berpindah ke Babak ${targetPeriod}.`);
+    },
+    [clock, currentPeriod, patchClockMutation, periodDurationSeconds, setPeriod],
+  );
 
   // Finish match confirmation
   const handleConfirmFinish = useCallback(() => {
@@ -383,6 +468,7 @@ export function LiveRecorderPage({ matchId }: LiveRecorderPageProps) {
 
   const homePlayers = players.filter((p) => p.side === "HOME");
   const awayPlayers = players.filter((p) => p.side === "AWAY");
+  const selectedPlayer = selectedPlayerId ? (players.find((p) => p.id === selectedPlayerId) ?? null) : null;
 
   return (
     <div className="flex flex-col min-h-screen bg-background -m-4 sm:-m-6">
@@ -404,6 +490,7 @@ export function LiveRecorderPage({ matchId }: LiveRecorderPageProps) {
         onToggleClock={clock.toggle}
         onStartPeriod={handleStartPeriod}
         onEndPeriod={handleEndPeriod}
+        onSelectPeriod={handleSelectPeriod}
         onFinishMatch={() => setShowFinishDialog(true)}
       />
 
@@ -419,7 +506,7 @@ export function LiveRecorderPage({ matchId }: LiveRecorderPageProps) {
               teamColor={match.homeColor}
               players={homePlayers}
               selectedPlayerId={selectedPlayerId}
-              onSelectPlayer={setSelectedPlayerId}
+              onSelectPlayer={handleSelectPlayer}
               onOpenSubModal={() => setSubModalSide("HOME")}
             />
           </div>
@@ -428,7 +515,15 @@ export function LiveRecorderPage({ matchId }: LiveRecorderPageProps) {
           <div className="lg:col-span-4 flex flex-col gap-4">
             <ActionPad
               hasSelectedPlayer={Boolean(selectedPlayerId)}
+              selectedPlayer={selectedPlayer}
               selectedAction={selectedAction}
+              selectedSide={selectedSide}
+              homeTeamName={match.homeTeamName}
+              awayTeamName={match.awayTeamName}
+              homeColor={match.homeColor}
+              awayColor={match.awayColor}
+              onSelectSide={setSelectedSide}
+              onClearSelection={handleClearSelection}
               onActionClick={handleActionClick}
               onTeamTurnover={handleTeamTurnover}
               onTeamTimeout={handleTeamTimeout}
@@ -440,6 +535,7 @@ export function LiveRecorderPage({ matchId }: LiveRecorderPageProps) {
               homeTeamName={match.homeTeamName}
               awayTeamName={match.awayTeamName}
               onUndoLast={handleUndoLast}
+              onDeleteEvent={handleDeleteEvent}
             />
           </div>
 
@@ -451,7 +547,7 @@ export function LiveRecorderPage({ matchId }: LiveRecorderPageProps) {
               teamColor={match.awayColor}
               players={awayPlayers}
               selectedPlayerId={selectedPlayerId}
-              onSelectPlayer={setSelectedPlayerId}
+              onSelectPlayer={handleSelectPlayer}
               onOpenSubModal={() => setSubModalSide("AWAY")}
             />
           </div>
@@ -464,7 +560,6 @@ export function LiveRecorderPage({ matchId }: LiveRecorderPageProps) {
             value={selectedSide}
             onValueChange={(val) => {
               setSelectedSide(val as MatchSide);
-              setSelectedPlayerId(null);
             }}
             className="w-full"
           >
@@ -494,7 +589,7 @@ export function LiveRecorderPage({ matchId }: LiveRecorderPageProps) {
               teamColor={selectedSide === "HOME" ? match.homeColor : match.awayColor}
               players={selectedSide === "HOME" ? homePlayers : awayPlayers}
               selectedPlayerId={selectedPlayerId}
-              onSelectPlayer={setSelectedPlayerId}
+              onSelectPlayer={handleSelectPlayer}
               onOpenSubModal={() => setSubModalSide(selectedSide)}
             />
           </div>
@@ -502,7 +597,15 @@ export function LiveRecorderPage({ matchId }: LiveRecorderPageProps) {
           {/* Action Pad */}
           <ActionPad
             hasSelectedPlayer={Boolean(selectedPlayerId)}
+            selectedPlayer={selectedPlayer}
             selectedAction={selectedAction}
+            selectedSide={selectedSide}
+            homeTeamName={match.homeTeamName}
+            awayTeamName={match.awayTeamName}
+            homeColor={match.homeColor}
+            awayColor={match.awayColor}
+            onSelectSide={setSelectedSide}
+            onClearSelection={handleClearSelection}
             onActionClick={handleActionClick}
             onTeamTurnover={handleTeamTurnover}
             onTeamTimeout={handleTeamTimeout}
@@ -515,6 +618,7 @@ export function LiveRecorderPage({ matchId }: LiveRecorderPageProps) {
             homeTeamName={match.homeTeamName}
             awayTeamName={match.awayTeamName}
             onUndoLast={handleUndoLast}
+            onDeleteEvent={handleDeleteEvent}
           />
         </div>
       </main>
@@ -524,7 +628,7 @@ export function LiveRecorderPage({ matchId }: LiveRecorderPageProps) {
         <AssistSheet
           goalEventId={showAssistSheetForEventId}
           side={showAssistScorerSide}
-          scorerPlayerId={selectedPlayerId}
+          scorerPlayerId={showAssistScorerPlayerId}
           players={players}
           onSelectAssist={handleSelectAssist}
           onDismiss={() => setShowAssistSheetForEventId(null)}
