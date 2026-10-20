@@ -17,6 +17,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button, buttonVariants } from "@/shared/components/ui/button";
+import { usePermission } from "@/shared/hooks";
 import { formatWibDateTime } from "@/shared/lib/format-date";
 import { useMatch, useReopenMatch, useStartMatch } from "../hooks/useMatches";
 import { LineupEditor } from "./LineupEditor";
@@ -28,6 +29,10 @@ interface MatchDetailPageProps {
 export function MatchDetailPage({ matchId }: MatchDetailPageProps) {
   const router = useRouter();
   const { data: match, isLoading, isError, refetch } = useMatch(matchId);
+
+  const canEditMatch = usePermission("matches:update");
+  const canRecord = usePermission("matches:record");
+  const canReopen = usePermission("matches:reopen");
 
   const startMatchMutation = useStartMatch(matchId);
   const reopenMatchMutation = useReopenMatch(matchId);
@@ -99,7 +104,7 @@ export function MatchDetailPage({ matchId }: MatchDetailPageProps) {
         </Link>
 
         <div className="flex items-center gap-2">
-          {!isFinished && (
+          {!isFinished && canEditMatch && (
             <Link
               href={`/matches/${match.id}/edit`}
               className={buttonVariants({ variant: "outline", size: "sm", className: "gap-1 text-xs" })}
@@ -202,14 +207,14 @@ export function MatchDetailPage({ matchId }: MatchDetailPageProps) {
 
         {/* Action button row */}
         <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
-          {isScheduled && (
+          {isScheduled && canRecord && (
             <Button onClick={handleStart} className="gap-2 px-6">
               <Play size={16} />
               <span>Mulai Pertandingan & Buka Live Recorder</span>
             </Button>
           )}
 
-          {isLive && (
+          {isLive && canRecord && (
             <Link
               href={`/matches/${match.id}/record`}
               className={buttonVariants({
@@ -223,7 +228,7 @@ export function MatchDetailPage({ matchId }: MatchDetailPageProps) {
             </Link>
           )}
 
-          {isFinished && (
+          {isFinished && canReopen && (
             <Button
               variant="outline"
               size="sm"
@@ -270,7 +275,7 @@ export function MatchDetailPage({ matchId }: MatchDetailPageProps) {
           </span>
         </div>
 
-        <LineupEditor match={match} onSaved={() => void refetch()} />
+        <LineupEditor match={match} readOnly={!canEditMatch || isFinished} onSaved={() => void refetch()} />
       </div>
     </div>
   );

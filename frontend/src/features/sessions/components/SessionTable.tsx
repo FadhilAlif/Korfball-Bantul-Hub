@@ -76,6 +76,7 @@ interface SessionTableProps {
   canEdit: boolean;
   canDelete: boolean;
   canViewAttendance: boolean;
+  canViewCheckinCode?: boolean;
   onEdit: (session: SessionItem) => void;
   onCancel: (session: SessionItem) => void;
   onDelete: (session: SessionItem) => void;
@@ -88,6 +89,7 @@ export const SessionTable = memo(function SessionTable({
   canEdit,
   canDelete,
   canViewAttendance,
+  canViewCheckinCode = false,
   onEdit,
   onCancel,
   onDelete,
@@ -184,24 +186,24 @@ export const SessionTable = memo(function SessionTable({
               <th className="w-12 px-4 py-2.5 border-b border-border" />
               <TableHeader>Sesi & Jadwal</TableHeader>
               <TableHeader>Jenis</TableHeader>
-              <TableHeader>Kode Check-in</TableHeader>
+              {canViewCheckinCode && <TableHeader>Kode Check-in</TableHeader>}
               <TableHeader>Ringkasan Hadir</TableHeader>
               <TableHeader>Status</TableHeader>
               <TableHeader className="text-right">Aksi</TableHeader>
             </tr>
           </thead>
           <tbody>
-            <TableLoadingRow isLoading={isFetching} colSpan={7} />
+            <TableLoadingRow isLoading={isFetching} colSpan={canViewCheckinCode ? 7 : 6} />
             {isError && !isFetching && (
               <tr>
-                <td colSpan={7} className="py-12 text-center text-sm text-muted-foreground">
+                <td colSpan={canViewCheckinCode ? 7 : 6} className="py-12 text-center text-sm text-muted-foreground">
                   Gagal memuat daftar sesi. Silakan muat ulang halaman.
                 </td>
               </tr>
             )}
             <TableEmptyRow
               isEmpty={!isFetching && !isError && sessions.length === 0}
-              colSpan={7}
+              colSpan={canViewCheckinCode ? 7 : 6}
               icon={<CalendarCheck2 size={24} strokeWidth={1.5} aria-hidden />}
               title="Belum ada jadwal sesi latihan"
               description="Klik tombol Generate Sesi Rutin (Selasa & Sabtu) atau Buat Sesi Baru."
@@ -250,11 +252,17 @@ export const SessionTable = memo(function SessionTable({
                     <Badge variant="outline">{TYPE_LABEL[s.type]}</Badge>
                   </TableCell>
 
-                  <TableCell>
-                    <code className="font-mono font-bold tracking-widest text-xs bg-muted px-2.5 py-1 rounded-md border border-border">
-                      {s.checkinCode}
-                    </code>
-                  </TableCell>
+                  {canViewCheckinCode && (
+                    <TableCell>
+                      {s.checkinCode ? (
+                        <code className="font-mono font-bold tracking-widest text-xs bg-muted px-2.5 py-1 rounded-md border border-border">
+                          {s.checkinCode}
+                        </code>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
+                    </TableCell>
+                  )}
 
                   <TableCell>
                     <div className="inline-flex items-center gap-2 text-xs bg-muted/60 px-2.5 py-1 rounded-lg border border-border">

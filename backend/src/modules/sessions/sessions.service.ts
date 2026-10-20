@@ -37,7 +37,7 @@ export interface SessionItem {
   endsAt: Date | string;
   venue: string | null;
   lateToleranceMinutes: number;
-  checkinCode: string;
+  checkinCode: string | null;
   status: SessionStatus;
   notes: string | null;
   createdBy: number | null;
@@ -53,7 +53,7 @@ export interface SessionItem {
 export class SessionsService {
   constructor(@Inject(DRIZZLE_DB) private readonly db: DrizzleDatabase) {}
 
-  async listSessions(query: Partial<ListSessionsQuery> = {}) {
+  async listSessions(query: Partial<ListSessionsQuery> = {}, canViewCheckinCode = true) {
     const page = query.page ? Math.max(1, Number(query.page)) : 1;
     const limit = query.limit ? Math.max(1, Math.min(100, Number(query.limit))) : 20;
     const conditions = [isNull(sessions.deletedAt)];
@@ -111,7 +111,7 @@ export class SessionsService {
       endsAt: r.session.endsAt,
       venue: r.session.venue,
       lateToleranceMinutes: r.session.lateToleranceMinutes,
-      checkinCode: r.session.checkinCode,
+      checkinCode: canViewCheckinCode ? r.session.checkinCode : null,
       status: r.session.status,
       notes: r.session.notes,
       createdBy: r.session.createdBy,
@@ -140,7 +140,7 @@ export class SessionsService {
     };
   }
 
-  async getSession(sessionId: number): Promise<SessionItem> {
+  async getSession(sessionId: number, canViewCheckinCode = true): Promise<SessionItem> {
     const [row] = await this.db
       .select({
         session: sessions,
@@ -177,7 +177,7 @@ export class SessionsService {
       endsAt: row.session.endsAt,
       venue: row.session.venue,
       lateToleranceMinutes: row.session.lateToleranceMinutes,
-      checkinCode: row.session.checkinCode,
+      checkinCode: canViewCheckinCode ? row.session.checkinCode : null,
       status: row.session.status,
       notes: row.session.notes,
       createdBy: row.session.createdBy,

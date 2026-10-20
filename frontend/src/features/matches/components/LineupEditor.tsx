@@ -16,6 +16,7 @@ import { QuickAddAthleteModal } from "./QuickAddAthleteModal";
 
 interface LineupEditorProps {
   match: MatchDetail;
+  readOnly?: boolean;
   onSaved?: () => void;
 }
 
@@ -29,7 +30,7 @@ interface LocalLineupItem {
   isStarter: boolean;
 }
 
-export function LineupEditor({ match, onSaved }: LineupEditorProps) {
+export function LineupEditor({ match, readOnly = false, onSaved }: LineupEditorProps) {
   const [activeSide, setActiveSide] = useState<MatchSide>("HOME");
   const [showQuickAdd, setShowQuickAdd] = useState(false);
 
@@ -45,6 +46,7 @@ export function LineupEditor({ match, onSaved }: LineupEditorProps) {
     teamId: match.homeTeamId,
     limit: 100,
     status: "ACTIVE",
+    enabled: !readOnly,
   });
 
   const {
@@ -55,6 +57,7 @@ export function LineupEditor({ match, onSaved }: LineupEditorProps) {
     teamId: match.awayTeamId,
     limit: 100,
     status: "ACTIVE",
+    enabled: !readOnly,
   });
 
   // Safely extract all saved players from match (supports both .players and .lineup)
@@ -136,7 +139,7 @@ export function LineupEditor({ match, onSaved }: LineupEditorProps) {
   const setLineupMutation = useSetLineup(match.id);
 
   // Active lineup items
-  const lineupItems = lineups[activeSide] || [];
+  const lineupItems = readOnly ? (lineups[activeSide] || []).filter((i) => i.selected) : lineups[activeSide] || [];
 
   // Opposite side lineup for cross-side conflict prevention (same athlete cannot be selected on both sides)
   const oppositeSide: MatchSide = activeSide === "HOME" ? "AWAY" : "HOME";
@@ -304,15 +307,17 @@ export function LineupEditor({ match, onSaved }: LineupEditorProps) {
         </Tabs>
 
         {/* Action button to quickly add athlete */}
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => setShowQuickAdd(true)}
-          className="gap-1.5 text-xs self-start sm:self-auto"
-        >
-          <UserPlus size={14} />
-          <span>Tambah Atlet Cepat</span>
-        </Button>
+        {!readOnly && (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setShowQuickAdd(true)}
+            className="gap-1.5 text-xs self-start sm:self-auto"
+          >
+            <UserPlus size={14} />
+            <span>Tambah Atlet Cepat</span>
+          </Button>
+        )}
       </div>
 
       {/* Composition & Warning Bar */}
@@ -405,20 +410,20 @@ export function LineupEditor({ match, onSaved }: LineupEditorProps) {
                     <td className="py-2 px-3 text-center">
                       <Checkbox
                         checked={item.selected}
-                        disabled={isSelectedOnOpposite}
+                        disabled={readOnly || isSelectedOnOpposite}
                         onCheckedChange={() => handleToggleSelect(item.athleteId)}
                       />
                     </td>
                     <td className="py-2 px-3 text-center">
                       <button
                         type="button"
-                        disabled={isSelectedOnOpposite}
+                        disabled={readOnly || isSelectedOnOpposite}
                         onClick={() => handleToggleStarter(item.athleteId)}
                         className={cn(
                           "text-[10px] font-bold px-2 py-0.5 rounded-md transition-all",
                           item.isStarter
                             ? "bg-primary text-primary-foreground shadow-xs"
-                            : isSelectedOnOpposite
+                            : isSelectedOnOpposite || readOnly
                               ? "bg-muted text-muted-foreground/50 cursor-not-allowed"
                               : "bg-muted text-muted-foreground hover:bg-muted/80",
                         )}
@@ -431,7 +436,7 @@ export function LineupEditor({ match, onSaved }: LineupEditorProps) {
                         type="number"
                         min={0}
                         max={99}
-                        disabled={isSelectedOnOpposite}
+                        disabled={readOnly || isSelectedOnOpposite}
                         value={item.jerseyNumber}
                         onChange={(e) => handleJerseyChange(item.athleteId, Number.parseInt(e.target.value, 10) || 0)}
                         className="h-8 w-18 font-mono text-xs text-center"
@@ -487,27 +492,29 @@ export function LineupEditor({ match, onSaved }: LineupEditorProps) {
       )}
 
       {/* Save Button */}
-      <div className="flex items-center justify-between pt-2">
-        <div className="text-xs text-muted-foreground">
-          {dirtySides[activeSide] ? (
-            <span className="text-amber-600 dark:text-amber-400 font-medium flex items-center gap-1">
-              <AlertTriangle size={13} />
-              <span>Ada perubahan pada lineup {activeSide} yang belum disimpan.</span>
-            </span>
-          ) : (
-            <span className="text-muted-foreground">Lineup {activeSide} tersimpan sesuai data server.</span>
-          )}
-        </div>
+      {!readOnly && (
+        <div className="flex items-center justify-between pt-2">
+          <div className="text-xs text-muted-foreground">
+            {dirtySides[activeSide] ? (
+              <span className="text-amber-600 dark:text-amber-400 font-medium flex items-center gap-1">
+                <AlertTriangle size={13} />
+                <span>Ada perubahan pada lineup {activeSide} yang belum disimpan.</span>
+              </span>
+            ) : (
+              <span className="text-muted-foreground">Lineup {activeSide} tersimpan sesuai data server.</span>
+            )}
+          </div>
 
-        <Button
-          onClick={handleSave}
-          disabled={setLineupMutation.isPending || lineupItems.length === 0}
-          className="gap-2 text-xs"
-        >
-          {setLineupMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-          <span>Simpan Lineup {activeSide}</span>
-        </Button>
-      </div>
+          <Button
+            onClick={handleSave}
+            disabled={setLineupMutation.isPending || lineupItems.length === 0}
+            className="gap-2 text-xs"
+          >
+            {setLineupMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+            <span>Simpan Lineup {activeSide}</span>
+          </Button>
+        </div>
+      )}
 
       {/* Quick Add Athlete Modal */}
       {showQuickAdd && (

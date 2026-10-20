@@ -13,6 +13,7 @@ export interface UseAthletesParams {
   sex?: string;
   status?: string;
   search?: string;
+  enabled?: boolean;
 }
 
 export function useAthletes({
@@ -22,9 +23,11 @@ export function useAthletes({
   sex = "",
   status = "",
   search = "",
+  enabled = true,
 }: UseAthletesParams = {}) {
   return useQuery<PaginatedResponse<AthleteItem>>({
     queryKey: ["athletes", page, limit, String(teamId), sex, status, search],
+    enabled,
     queryFn: async () => {
       const params = new URLSearchParams({
         page: String(page),

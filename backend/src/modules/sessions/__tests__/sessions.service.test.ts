@@ -150,4 +150,71 @@ describe("SessionsService & Utils", () => {
       new SessionsService(createMockDb([[{ id: 5 }], [{ count: 2 }]]) as never).deleteSession(5),
     ).rejects.toThrow("Sesi sudah memiliki data presensi dan tidak dapat dihapus.");
   });
+
+  it("masks checkinCode to null when canViewCheckinCode is false (e.g. for athletes)", async () => {
+    const mockDb = createMockDb([
+      // getSession query
+      [
+        {
+          session: {
+            id: 10,
+            teamId: 1,
+            title: "Latihan Rutin",
+            type: "TRAINING",
+            startsAt: new Date(),
+            endsAt: new Date(),
+            venue: "GOR Sasana Krida",
+            lateToleranceMinutes: 15,
+            checkinCode: "SECRET",
+            status: "SCHEDULED",
+            notes: null,
+            createdBy: 1,
+            finalizedAt: null,
+            finalizedBy: null,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+          teamName: "Korfball Bantul",
+          createdByName: "Coach",
+        },
+      ],
+      // getAttendanceSummaries
+      [],
+    ]);
+
+    const service = new SessionsService(mockDb as never);
+    const sessionForStaff = await service.getSession(10, true);
+    expect(sessionForStaff.checkinCode).toBe("SECRET");
+
+    const mockDb2 = createMockDb([
+      [
+        {
+          session: {
+            id: 10,
+            teamId: 1,
+            title: "Latihan Rutin",
+            type: "TRAINING",
+            startsAt: new Date(),
+            endsAt: new Date(),
+            venue: "GOR Sasana Krida",
+            lateToleranceMinutes: 15,
+            checkinCode: "SECRET",
+            status: "SCHEDULED",
+            notes: null,
+            createdBy: 1,
+            finalizedAt: null,
+            finalizedBy: null,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+          teamName: "Korfball Bantul",
+          createdByName: "Coach",
+        },
+      ],
+      [],
+    ]);
+    const service2 = new SessionsService(mockDb2 as never);
+    const sessionForAthlete = await service2.getSession(10, false);
+    expect(sessionForAthlete.checkinCode).toBeNull();
+  });
 });

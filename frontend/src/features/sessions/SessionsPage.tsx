@@ -27,6 +27,7 @@ export function SessionsPage() {
     canCreate,
     canEdit,
     canDelete,
+    canRecordAttendance,
     canViewAttendance,
     activeFilterCount,
     clearFilters,
@@ -50,7 +51,7 @@ export function SessionsPage() {
     <div className="flex flex-col gap-5">
       <PageHeader
         title="Sesi Latihan & Presensi"
-        description="Kelola jadwal latihan rutin Selasa & Sabtu, tampilkan kode check-in 6 karakter, dan catat kehadiran atlet."
+        description="Kelola jadwal latihan rutin, pantau waktu dan lokasi sesi, serta rekap kehadiran tim."
       >
         {canExportSummary && (
           <Link href="/attendance/summary" className={buttonVariants({ variant: "outline", size: "sm" })}>
@@ -79,6 +80,7 @@ export function SessionsPage() {
         canEdit={canEdit}
         canDelete={canDelete}
         canViewAttendance={canViewAttendance}
+        canViewCheckinCode={canRecordAttendance}
         onEdit={openEdit}
         onCancel={handleCancelSession}
         onDelete={openConfirmDelete}

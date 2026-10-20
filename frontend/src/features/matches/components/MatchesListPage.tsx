@@ -7,6 +7,7 @@ import { PageHeader } from "@/shared/components/common";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button, buttonVariants } from "@/shared/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select";
+import { usePermission } from "@/shared/hooks";
 import { formatWibDateTime } from "@/shared/lib/format-date";
 import { useMatches } from "../hooks/useMatches";
 import type { MatchItem } from "../types";
@@ -25,6 +26,7 @@ export function MatchesListPage() {
 
   const matches = data?.data ?? [];
   const meta = data?.meta;
+  const canCreateMatch = usePermission("matches:create");
 
   return (
     <div className="flex flex-col gap-6">
@@ -38,10 +40,12 @@ export function MatchesListPage() {
             <RefreshCw size={14} />
             <span className="hidden sm:inline">Refresh</span>
           </Button>
-          <Link href="/matches/new" className={buttonVariants({ variant: "default", size: "sm" })}>
-            <Plus size={15} />
-            <span>Buat Pertandingan</span>
-          </Link>
+          {canCreateMatch && (
+            <Link href="/matches/new" className={buttonVariants({ variant: "default", size: "sm" })}>
+              <Plus size={15} />
+              <span>Buat Pertandingan</span>
+            </Link>
+          )}
         </div>
       </PageHeader>
 

@@ -20,7 +20,7 @@ export interface SessionItem {
   endsAt: string;
   venue: string | null;
   lateToleranceMinutes: number;
-  checkinCode: string;
+  checkinCode: string | null;
   status: SessionStatus;
   notes: string | null;
   createdBy: number | null;
