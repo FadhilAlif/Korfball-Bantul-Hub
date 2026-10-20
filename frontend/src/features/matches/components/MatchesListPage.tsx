@@ -69,7 +69,6 @@ export function MatchesListPage() {
               <SelectItem value="LIVE">Live Sekarang</SelectItem>
               <SelectItem value="SCHEDULED">Terjadwal</SelectItem>
               <SelectItem value="FINISHED">Selesai</SelectItem>
-              <SelectItem value="PAUSED">Jeda / Paused</SelectItem>
               <SelectItem value="CANCELLED">Dibatalkan</SelectItem>
             </SelectContent>
           </Select>
@@ -207,6 +206,15 @@ function MatchCard({ match }: { match: MatchItem }) {
           {isScheduled && (
             <Badge variant="outline" className="text-muted-foreground text-[10px] py-0 px-1.5">
               JADWAL
+            </Badge>
+          )}
+
+          {match.status === "CANCELLED" && (
+            <Badge
+              variant="outline"
+              className="text-destructive border-destructive/30 bg-destructive/10 text-[10px] py-0 px-1.5"
+            >
+              BATAL
             </Badge>
           )}
         </div>
