@@ -19,14 +19,20 @@ import { useDashboardSummary } from "@/features/statistics";
 import { PageHeader } from "@/shared/components/common";
 import { Button, buttonVariants } from "@/shared/components/ui";
 import { useAnyPermission, usePermission } from "@/shared/hooks";
-import { ActivityFeed } from "./components/ActivityFeed";
-import { ActiveMatchCard } from "./components/ActiveMatchCard";
-import { QuickActions } from "./components/QuickActions";
-import { RecentMatchesList } from "./components/RecentMatchesList";
-import { RoleDistribution } from "./components/RoleDistribution";
-import { StatCard } from "./components/StatCard";
-import { TodaySessionStaffCard } from "./components/TodaySessionStaffCard";
-import { UpcomingSessionsList } from "./components/UpcomingSessionsList";
+import {
+  ActiveMatchCard,
+  ActivityFeed,
+  AttendanceTrendChart,
+  DashboardLeaderboard,
+  MatchScoringChart,
+  QuickActions,
+  RecentMatchesList,
+  RoleDistribution,
+  ShotDistributionChart,
+  StatCard,
+  TodaySessionStaffCard,
+  UpcomingSessionsList,
+} from "./components";
 import { useDashboardPage } from "./hooks";
 
 export function DashboardPage() {
@@ -103,11 +109,10 @@ export function DashboardPage() {
                   ? `${summary.teamSummary90d.goalsFor} : ${summary.teamSummary90d.goalsAgainst}`
                   : "0 : 0"
               }
-              sub={`Selisih ${
-                (summary?.teamSummary90d?.goalsFor ?? 0) - (summary?.teamSummary90d?.goalsAgainst ?? 0) >= 0
-                  ? `+${(summary?.teamSummary90d?.goalsFor ?? 0) - (summary?.teamSummary90d?.goalsAgainst ?? 0)}`
-                  : (summary?.teamSummary90d?.goalsFor ?? 0) - (summary?.teamSummary90d?.goalsAgainst ?? 0)
-              } Gol`}
+              sub={`Selisih ${(summary?.teamSummary90d?.goalsFor ?? 0) - (summary?.teamSummary90d?.goalsAgainst ?? 0) >= 0
+                ? `+${(summary?.teamSummary90d?.goalsFor ?? 0) - (summary?.teamSummary90d?.goalsAgainst ?? 0)}`
+                : (summary?.teamSummary90d?.goalsFor ?? 0) - (summary?.teamSummary90d?.goalsAgainst ?? 0)
+                } Gol`}
               icon={<Target size={16} />}
               isLoading={isSummaryLoading}
             />
@@ -142,11 +147,10 @@ export function DashboardPage() {
             <StatCard
               label="Total Poin (PTS)"
               value={`${summary?.myStats?.pts ?? 0} Poin`}
-              sub={`Akurasi %FG ${
-                summary?.myStats?.fgPct !== null && summary?.myStats?.fgPct !== undefined
-                  ? `${summary.myStats.fgPct}%`
-                  : "—"
-              }`}
+              sub={`Akurasi %FG ${summary?.myStats?.fgPct !== null && summary?.myStats?.fgPct !== undefined
+                ? `${summary.myStats.fgPct}%`
+                : "—"
+                }`}
               icon={<Target size={16} />}
               isLoading={isSummaryLoading}
             />
@@ -159,6 +163,17 @@ export function DashboardPage() {
             />
           </>
         )}
+      </div>
+
+      {/* Visual Analytics & Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <AttendanceTrendChart data={summary?.attendanceTrend} isLoading={isSummaryLoading} />
+        <ShotDistributionChart data={summary?.teamShooting} isLoading={isSummaryLoading} />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <MatchScoringChart matches={summary?.recentMatches} isLoading={isSummaryLoading} />
+        <DashboardLeaderboard isStaff={isStaff} />
       </div>
 
       {/* Two Column Grid: Sesi Mendatang & Hasil Pertandingan */}

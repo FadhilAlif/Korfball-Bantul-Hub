@@ -179,6 +179,22 @@ export interface TeamStatsQuery {
   types?: string;
 }
 
+export interface AttendanceTrendItem {
+  sessionId: number;
+  sessionTitle: string;
+  date: string;
+  present: number;
+  late: number;
+  excused: number;
+  absent: number;
+  rate: number;
+}
+
+export interface AttendanceTrendQuery {
+  from?: string;
+  to?: string;
+}
+
 export interface DashboardSummary {
   role: "staff" | "athlete";
   internalTeamName: string;
@@ -247,5 +263,24 @@ export interface DashboardSummary {
     awayTeamName: string;
     homeScore: number;
     awayScore: number;
+    teamScore?: number;
+    opponentScore?: number;
+    opponentName?: string;
+    result?: "W" | "L" | "D";
   }[];
+  attendanceTrend?: AttendanceTrendItem[];
+  teamShooting?: {
+    rim: number;
+    ria: number;
+    pctFgr: number | null;
+    sm: number;
+    sa: number;
+    pctFgs: number | null;
+    pm: number;
+    pa: number;
+    pctP: number | null;
+    totalMade: number;
+    totalAttempts: number;
+    pctFg: number | null;
+  } | null;
 }

@@ -1,13 +1,14 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import {
   exportPlayerLeaderboard,
+  getAttendanceTrend,
   getDashboardSummary,
   getMyStats,
   getPlayerLeaderboard,
   getPlayerProfile,
   getTeamStats,
 } from "../api/statistics.api";
-import type { PlayerLeaderboardQuery, TeamStatsQuery } from "../types";
+import type { AttendanceTrendItem, AttendanceTrendQuery, PlayerLeaderboardQuery, TeamStatsQuery } from "../types";
 
 export const STATS_KEYS = {
   all: ["statistics"] as const,
@@ -15,6 +16,7 @@ export const STATS_KEYS = {
   playerProfile: (athleteId: number) => [...STATS_KEYS.all, "player", athleteId] as const,
   myStats: () => [...STATS_KEYS.all, "me"] as const,
   team: (query: TeamStatsQuery) => [...STATS_KEYS.all, "team", query] as const,
+  attendanceTrend: (query: AttendanceTrendQuery) => ["dashboard", "attendance-trend", query] as const,
   dashboard: () => ["dashboard", "summary"] as const,
 };
 
@@ -66,6 +68,15 @@ export function useTeamStats(query: TeamStatsQuery = {}) {
     queryKey: STATS_KEYS.team(query),
     queryFn: () => getTeamStats(query),
     staleTime: 60 * 1000,
+  });
+}
+
+export function useAttendanceTrend(query: AttendanceTrendQuery = {}, initialData?: AttendanceTrendItem[]) {
+  return useQuery({
+    queryKey: STATS_KEYS.attendanceTrend(query),
+    queryFn: () => getAttendanceTrend(query),
+    initialData,
+    staleTime: 30 * 1000,
   });
 }
 
