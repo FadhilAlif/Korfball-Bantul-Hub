@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+import { isNavItemActive } from "./isNavItemActive";
 import type { NavItemDef } from "./Sidebar.types";
 
 interface UseNavGroupReturn {
@@ -14,7 +15,7 @@ export function useNavGroup(items: NavItemDef[]): UseNavGroupReturn {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
 
-  const isActiveParent = items.some((item) => pathname.startsWith(item.href));
+  const isActiveParent = items.some((item) => isNavItemActive(item.href, pathname));
 
   useEffect(() => {
     if (isActiveParent) setIsOpen(true);

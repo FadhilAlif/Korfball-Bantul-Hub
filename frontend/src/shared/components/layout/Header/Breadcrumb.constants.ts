@@ -1,3 +1,8 @@
+export interface BreadcrumbSegment {
+  label: string;
+  href?: string;
+}
+
 export const ROUTE_LABELS: Record<string, string> = {
   "/dashboard": "Dashboard",
   "/teams": "Tim",
