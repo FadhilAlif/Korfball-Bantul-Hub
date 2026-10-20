@@ -96,6 +96,23 @@ const BOX_SCORE_COLUMNS = [
   "EFF",
 ];
 
+function getUniqueSheetName(usedNames: Set<string>, desiredName: string): string {
+  const cleaned =
+    desiredName
+      .replace(/[:\\/?*[\]]/g, "_")
+      .slice(0, 31)
+      .trim() || "Sheet";
+  let uniqueName = cleaned;
+  let counter = 1;
+  while (usedNames.has(uniqueName.toLowerCase())) {
+    const suffix = ` (${counter})`;
+    uniqueName = `${cleaned.slice(0, 31 - suffix.length)}${suffix}`;
+    counter++;
+  }
+  usedNames.add(uniqueName.toLowerCase());
+  return uniqueName;
+}
+
 export async function buildMatchReportWorkbook(
   boxScore: MatchBoxScore,
   matchHeader: {
@@ -111,13 +128,14 @@ export async function buildMatchReportWorkbook(
   },
 ): Promise<Buffer> {
   const tables: TableSheet[] = [];
+  const usedSheetNames = new Set<string>();
 
   // Sheet 1: Ringkasan
   const wib = toWibParts(new Date(matchHeader.scheduledAt));
   const wibDateStr = `${wib.year}-${String(wib.month).padStart(2, "0")}-${String(wib.day).padStart(2, "0")}`;
 
   tables.push({
-    sheetName: "Ringkasan",
+    sheetName: getUniqueSheetName(usedSheetNames, "Ringkasan"),
     tableName: "RingkasanMatch",
     columns: ["Parameter", "Nilai"],
     rows: [
@@ -137,7 +155,7 @@ export async function buildMatchReportWorkbook(
   });
 
   // Sheet 2: Home Box Score
-  const homeSheetName = (boxScore.home.teamName || "Home").slice(0, 30).replace(/[:\\/?*[\]]/g, "_");
+  const homeSheetName = getUniqueSheetName(usedSheetNames, `Home - ${boxScore.home.teamName || "Home"}`);
   tables.push({
     sheetName: homeSheetName,
     tableName: "BoxScoreHome",
@@ -146,7 +164,7 @@ export async function buildMatchReportWorkbook(
   });
 
   // Sheet 3: Away Box Score
-  const awaySheetName = (boxScore.away.teamName || "Away").slice(0, 30).replace(/[:\\/?*[\]]/g, "_");
+  const awaySheetName = getUniqueSheetName(usedSheetNames, `Away - ${boxScore.away.teamName || "Away"}`);
   tables.push({
     sheetName: awaySheetName,
     tableName: "BoxScoreAway",
@@ -160,7 +178,7 @@ export async function buildMatchReportWorkbook(
   const awayPeriodRow = [boxScore.away.teamName, ...boxScore.periods.map((p) => p.away), boxScore.awayScore];
 
   tables.push({
-    sheetName: "Skor Babak",
+    sheetName: getUniqueSheetName(usedSheetNames, "Skor Babak"),
     tableName: "SkorPerBabak",
     columns: periodCols,
     rows: [homePeriodRow, awayPeriodRow],
@@ -168,7 +186,7 @@ export async function buildMatchReportWorkbook(
 
   // Sheet 5: Running Score
   tables.push({
-    sheetName: "Running Score",
+    sheetName: getUniqueSheetName(usedSheetNames, "Running Score"),
     tableName: "RunningScoreTable",
     columns: ["Babak", "Waktu", "Sisi", "No", "Pemain", "Aksi", "Home", "Away"],
     rows: boxScore.runningScore.map((r) => [
@@ -185,7 +203,7 @@ export async function buildMatchReportWorkbook(
 
   // Sheet 6: Log Substitusi & Timeout
   tables.push({
-    sheetName: "Log Sub & Timeout",
+    sheetName: getUniqueSheetName(usedSheetNames, "Log Sub & Timeout"),
     tableName: "SubTimeoutLog",
     columns: ["Babak", "Waktu", "Sisi", "Tipe", "Keterangan"],
     rows: boxScore.logs.map((l) => [l.periodLabel, l.clockFormatted, l.side, l.type, l.description]),
