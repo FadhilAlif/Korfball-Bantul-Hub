@@ -109,10 +109,11 @@ export function DashboardPage() {
                   ? `${summary.teamSummary90d.goalsFor} : ${summary.teamSummary90d.goalsAgainst}`
                   : "0 : 0"
               }
-              sub={`Selisih ${(summary?.teamSummary90d?.goalsFor ?? 0) - (summary?.teamSummary90d?.goalsAgainst ?? 0) >= 0
-                ? `+${(summary?.teamSummary90d?.goalsFor ?? 0) - (summary?.teamSummary90d?.goalsAgainst ?? 0)}`
-                : (summary?.teamSummary90d?.goalsFor ?? 0) - (summary?.teamSummary90d?.goalsAgainst ?? 0)
-                } Gol`}
+              sub={`Selisih ${
+                (summary?.teamSummary90d?.goalsFor ?? 0) - (summary?.teamSummary90d?.goalsAgainst ?? 0) >= 0
+                  ? `+${(summary?.teamSummary90d?.goalsFor ?? 0) - (summary?.teamSummary90d?.goalsAgainst ?? 0)}`
+                  : (summary?.teamSummary90d?.goalsFor ?? 0) - (summary?.teamSummary90d?.goalsAgainst ?? 0)
+              } Gol`}
               icon={<Target size={16} />}
               isLoading={isSummaryLoading}
             />
@@ -147,10 +148,11 @@ export function DashboardPage() {
             <StatCard
               label="Total Poin (PTS)"
               value={`${summary?.myStats?.pts ?? 0} Poin`}
-              sub={`Akurasi %FG ${summary?.myStats?.fgPct !== null && summary?.myStats?.fgPct !== undefined
-                ? `${summary.myStats.fgPct}%`
-                : "—"
-                }`}
+              sub={`Akurasi %FG ${
+                summary?.myStats?.fgPct !== null && summary?.myStats?.fgPct !== undefined
+                  ? `${summary.myStats.fgPct}%`
+                  : "—"
+              }`}
               icon={<Target size={16} />}
               isLoading={isSummaryLoading}
             />

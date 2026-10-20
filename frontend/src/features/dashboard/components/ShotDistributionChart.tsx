@@ -58,36 +58,36 @@ export function ShotDistributionChart({ data: initialData, isLoading = false }: 
   const activeStats: TeamShootingStats | null | undefined =
     isCustomOrPreset && queriedTeamStats?.shooting
       ? {
-        rim: queriedTeamStats.shooting.rim,
-        ria: queriedTeamStats.shooting.ria,
-        pctFgr: queriedTeamStats.shooting.pctFgr,
-        sm: queriedTeamStats.shooting.sm,
-        sa: queriedTeamStats.shooting.sa,
-        pctFgs: queriedTeamStats.shooting.pctFgs,
-        pm: queriedTeamStats.shooting.pm,
-        pa: queriedTeamStats.shooting.pa,
-        pctP: queriedTeamStats.shooting.pctP,
-        totalMade: queriedTeamStats.shooting.rim + queriedTeamStats.shooting.sm + queriedTeamStats.shooting.pm,
-        totalAttempts: queriedTeamStats.shooting.ria + queriedTeamStats.shooting.sa + queriedTeamStats.shooting.pa,
-        pctFg: queriedTeamStats.shooting.pctFgTotal,
-      }
+          rim: queriedTeamStats.shooting.rim,
+          ria: queriedTeamStats.shooting.ria,
+          pctFgr: queriedTeamStats.shooting.pctFgr,
+          sm: queriedTeamStats.shooting.sm,
+          sa: queriedTeamStats.shooting.sa,
+          pctFgs: queriedTeamStats.shooting.pctFgs,
+          pm: queriedTeamStats.shooting.pm,
+          pa: queriedTeamStats.shooting.pa,
+          pctP: queriedTeamStats.shooting.pctP,
+          totalMade: queriedTeamStats.shooting.rim + queriedTeamStats.shooting.sm + queriedTeamStats.shooting.pm,
+          totalAttempts: queriedTeamStats.shooting.ria + queriedTeamStats.shooting.sa + queriedTeamStats.shooting.pa,
+          pctFg: queriedTeamStats.shooting.pctFgTotal,
+        }
       : (initialData ??
         (queriedTeamStats?.shooting
           ? {
-            rim: queriedTeamStats.shooting.rim,
-            ria: queriedTeamStats.shooting.ria,
-            pctFgr: queriedTeamStats.shooting.pctFgr,
-            sm: queriedTeamStats.shooting.sm,
-            sa: queriedTeamStats.shooting.sa,
-            pctFgs: queriedTeamStats.shooting.pctFgs,
-            pm: queriedTeamStats.shooting.pm,
-            pa: queriedTeamStats.shooting.pa,
-            pctP: queriedTeamStats.shooting.pctP,
-            totalMade: queriedTeamStats.shooting.rim + queriedTeamStats.shooting.sm + queriedTeamStats.shooting.pm,
-            totalAttempts:
-              queriedTeamStats.shooting.ria + queriedTeamStats.shooting.sa + queriedTeamStats.shooting.pa,
-            pctFg: queriedTeamStats.shooting.pctFgTotal,
-          }
+              rim: queriedTeamStats.shooting.rim,
+              ria: queriedTeamStats.shooting.ria,
+              pctFgr: queriedTeamStats.shooting.pctFgr,
+              sm: queriedTeamStats.shooting.sm,
+              sa: queriedTeamStats.shooting.sa,
+              pctFgs: queriedTeamStats.shooting.pctFgs,
+              pm: queriedTeamStats.shooting.pm,
+              pa: queriedTeamStats.shooting.pa,
+              pctP: queriedTeamStats.shooting.pctP,
+              totalMade: queriedTeamStats.shooting.rim + queriedTeamStats.shooting.sm + queriedTeamStats.shooting.pm,
+              totalAttempts:
+                queriedTeamStats.shooting.ria + queriedTeamStats.shooting.sa + queriedTeamStats.shooting.pa,
+              pctFg: queriedTeamStats.shooting.pctFgTotal,
+            }
           : null));
 
   const loading = isLoading || (isCustomOrPreset && isFilteredLoading);

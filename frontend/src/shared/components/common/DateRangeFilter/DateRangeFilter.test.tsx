@@ -10,7 +10,7 @@ describe("formatDateRangeLabel", () => {
   it("formats preset labels correctly", () => {
     expect(formatDateRangeLabel({ preset: "WEEKLY" })).toBe("Mingguan");
     expect(formatDateRangeLabel({ preset: "MONTHLY" })).toBe("Bulanan");
-    expect(formatDateRangeLabel({ preset: "ALL_TIME" })).toBe("Semua");
+    expect(formatDateRangeLabel({ preset: "ALL_TIME" })).toBe("Semua Waktu");
   });
 
   it("formats custom date range correctly", () => {

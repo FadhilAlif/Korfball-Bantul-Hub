@@ -34,7 +34,6 @@ const chartConfig: ChartConfig = {
   },
 };
 
-
 export function MatchScoringChart({ matches = [], isLoading = false }: MatchScoringChartProps) {
   if (isLoading) {
     return (
@@ -78,7 +77,6 @@ export function MatchScoringChart({ matches = [], isLoading = false }: MatchScor
   const losses = chartData.filter((m) => m.result === "L").length;
   const draws = chartData.filter((m) => m.result === "D").length;
 
-
   return (
     <div className="rounded-2xl border border-border bg-card p-5 shadow-xs flex flex-col justify-between gap-3.5 h-full">
       {/* Header */}
@@ -98,12 +96,13 @@ export function MatchScoringChart({ matches = [], isLoading = false }: MatchScor
             {chartData.map((m) => (
               <span
                 key={m.matchId}
-                className={`font-mono text-[10px] font-bold px-1.5 py-0.5 rounded-sm border ${m.result === "W"
-                  ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30"
-                  : m.result === "L"
-                    ? "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/30"
-                    : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30"
-                  }`}
+                className={`font-mono text-[10px] font-bold px-1.5 py-0.5 rounded-sm border ${
+                  m.result === "W"
+                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30"
+                    : m.result === "L"
+                      ? "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/30"
+                      : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30"
+                }`}
               >
                 {m.result}
               </span>
@@ -130,8 +129,9 @@ export function MatchScoringChart({ matches = [], isLoading = false }: MatchScor
           <div>
             <div className="text-[10px] text-muted-foreground font-medium">Selisih</div>
             <div
-              className={`text-xs sm:text-sm font-bold font-mono ${scoreDiff >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
-                }`}
+              className={`text-xs sm:text-sm font-bold font-mono ${
+                scoreDiff >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
+              }`}
             >
               {scoreDiff >= 0 ? `+${scoreDiff}` : scoreDiff}
             </div>
@@ -146,7 +146,6 @@ export function MatchScoringChart({ matches = [], isLoading = false }: MatchScor
               <span className="text-amber-500">{draws}D</span>
             </div>
           </div>
-
         </div>
       )}
 

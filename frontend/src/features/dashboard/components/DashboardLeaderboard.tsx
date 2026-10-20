@@ -134,7 +134,6 @@ export function DashboardLeaderboard({ isStaff = false }: DashboardLeaderboardPr
                               </Badge>
                             </div>
                           </div>
-
                         </div>
                       </div>
                     </td>
@@ -155,12 +154,13 @@ export function DashboardLeaderboard({ isStaff = false }: DashboardLeaderboardPr
                     {/* EFF */}
                     <td className="py-2 px-2 text-right font-mono">
                       <span
-                        className={`font-semibold px-1.5 py-0.5 rounded ${p.eff > 0
-                          ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                          : p.eff < 0
-                            ? "bg-rose-500/10 text-rose-600 dark:text-rose-400"
-                            : "text-muted-foreground"
-                          }`}
+                        className={`font-semibold px-1.5 py-0.5 rounded ${
+                          p.eff > 0
+                            ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+                            : p.eff < 0
+                              ? "bg-rose-500/10 text-rose-600 dark:text-rose-400"
+                              : "text-muted-foreground"
+                        }`}
                       >
                         {p.eff > 0 ? `+${p.eff}` : p.eff}
                       </span>

@@ -10,16 +10,19 @@ import {
   MapPin,
   Play,
   RotateCcw,
+  Trash2,
   Users,
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { toast } from "sonner";
+import { ConfirmDeleteModal } from "@/shared/components/common";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button, buttonVariants } from "@/shared/components/ui/button";
 import { usePermission } from "@/shared/hooks";
 import { formatWibDateTime } from "@/shared/lib/format-date";
-import { useMatch, useReopenMatch, useStartMatch } from "../hooks/useMatches";
+import { useDeleteMatch, useMatch, useReopenMatch, useStartMatch } from "../hooks/useMatches";
 import { LineupEditor } from "./LineupEditor";
 
 interface MatchDetailPageProps {
@@ -33,9 +36,29 @@ export function MatchDetailPage({ matchId }: MatchDetailPageProps) {
   const canEditMatch = usePermission("matches:update");
   const canRecord = usePermission("matches:record");
   const canReopen = usePermission("matches:reopen");
+  const canDeleteMatch = usePermission("matches:delete");
+
+  const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
 
   const startMatchMutation = useStartMatch(matchId);
   const reopenMatchMutation = useReopenMatch(matchId);
+  const deleteMatchMutation = useDeleteMatch();
+
+  const handleDelete = () => {
+    deleteMatchMutation.mutate(matchId, {
+      onSuccess: () => {
+        toast.success("Pertandingan berhasil dihapus.");
+        router.push("/matches");
+      },
+      onError: (err: unknown) => {
+        const errorResponse = err as { response?: { data?: { message?: string } }; message?: string };
+        toast.error(
+          errorResponse?.response?.data?.message || errorResponse?.message || "Gagal menghapus pertandingan.",
+        );
+        setIsConfirmDeleteOpen(false);
+      },
+    });
+  };
 
   const handleStart = () => {
     startMatchMutation.mutate(true, {
@@ -128,6 +151,18 @@ export function MatchDetailPage({ matchId }: MatchDetailPageProps) {
             <FileSpreadsheet size={13} />
             <span>Laporan Cetak</span>
           </Link>
+
+          {canDeleteMatch && (isScheduled || match.status === "CANCELLED") && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsConfirmDeleteOpen(true)}
+              className="gap-1 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive border-destructive/30"
+            >
+              <Trash2 size={13} />
+              <span>Hapus Match</span>
+            </Button>
+          )}
         </div>
       </div>
 
@@ -277,6 +312,17 @@ export function MatchDetailPage({ matchId }: MatchDetailPageProps) {
 
         <LineupEditor match={match} readOnly={!canEditMatch || isFinished} onSaved={() => void refetch()} />
       </div>
+
+      <ConfirmDeleteModal
+        isOpen={isConfirmDeleteOpen}
+        onClose={() => setIsConfirmDeleteOpen(false)}
+        onConfirm={handleDelete}
+        title={`Hapus pertandingan ${match.homeTeamName} vs ${match.awayTeamName}?`}
+        description="Pertandingan yang dihapus tidak dapat dipulihkan. Hanya pertandingan terjadwal atau dibatalkan tanpa event yang dapat dihapus."
+        confirmText={`${match.homeTeamName} vs ${match.awayTeamName}`}
+        confirmLabel="Hapus Pertandingan"
+        isLoading={deleteMatchMutation.isPending}
+      />
     </div>
   );
 }
