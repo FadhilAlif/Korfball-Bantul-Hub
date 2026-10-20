@@ -21,14 +21,14 @@ export interface PaginatedResponse<T> {
 export async function getPlayerLeaderboard(
   query: PlayerLeaderboardQuery = {},
 ): Promise<PaginatedResponse<PlayerLeaderboardItem>> {
-  const response = await apiClient.get<PaginatedResponse<PlayerLeaderboardItem>>("/api/stats/players", {
+  const response = await apiClient.get<PaginatedResponse<PlayerLeaderboardItem>>("/stats/players", {
     params: query,
   });
   return response.data;
 }
 
 export async function exportPlayerLeaderboard(query: PlayerLeaderboardQuery = {}): Promise<Blob> {
-  const response = await apiClient.get<Blob>("/api/stats/players/export", {
+  const response = await apiClient.get<Blob>("/stats/players/export", {
     params: query,
     responseType: "blob",
   });
@@ -36,23 +36,23 @@ export async function exportPlayerLeaderboard(query: PlayerLeaderboardQuery = {}
 }
 
 export async function getPlayerProfile(athleteId: number): Promise<PlayerProfileStats> {
-  const response = await apiClient.get<{ data: PlayerProfileStats }>(`/api/stats/players/${athleteId}`);
+  const response = await apiClient.get<{ data: PlayerProfileStats }>(`/stats/players/${athleteId}`);
   return response.data.data;
 }
 
 export async function getMyStats(): Promise<PlayerProfileStats> {
-  const response = await apiClient.get<{ data: PlayerProfileStats }>("/api/stats/me");
+  const response = await apiClient.get<{ data: PlayerProfileStats }>("/stats/me");
   return response.data.data;
 }
 
 export async function getTeamStats(query: TeamStatsQuery = {}): Promise<TeamStatsSummary> {
-  const response = await apiClient.get<{ data: TeamStatsSummary }>("/api/stats/team", {
+  const response = await apiClient.get<{ data: TeamStatsSummary }>("/stats/team", {
     params: query,
   });
   return response.data.data;
 }
 
 export async function getDashboardSummary(): Promise<DashboardSummary> {
-  const response = await apiClient.get<{ data: DashboardSummary }>("/api/dashboard/summary");
+  const response = await apiClient.get<{ data: DashboardSummary }>("/dashboard/summary");
   return response.data.data;
 }
