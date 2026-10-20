@@ -177,6 +177,19 @@ export class DashboardService {
       user.roles?.includes("coach") ||
       user.permissions?.some((p) => ["matches:record", "attendance:record", "stats:read"].includes(p));
 
+    // Resolve linked athlete ID for the user if not already attached to user object
+    let athleteId = user.athlete?.id;
+    if (!athleteId && !isStaff) {
+      const [linkedAthlete] = await this.db
+        .select({ id: athletes.id })
+        .from(athletes)
+        .where(and(eq(athletes.userId, user.id), isNull(athletes.deletedAt)))
+        .limit(1);
+      if (linkedAthlete) {
+        athleteId = linkedAthlete.id;
+      }
+    }
+
     // 1. Get internal team
     const [internalTeam] = await this.db
       .select({ id: teams.id, name: teams.name })
@@ -219,11 +232,11 @@ export class DashboardService {
     let todaySession: any = null;
     if (todaySessionRow) {
       let myAttendance: any = null;
-      if (!isStaff && user.athlete?.id) {
+      if (!isStaff && athleteId) {
         const [att] = await this.db
           .select()
           .from(attendances)
-          .where(and(eq(attendances.sessionId, todaySessionRow.id), eq(attendances.athleteId, user.athlete.id)))
+          .where(and(eq(attendances.sessionId, todaySessionRow.id), eq(attendances.athleteId, athleteId)))
           .limit(1);
 
         if (att) {
@@ -356,14 +369,14 @@ export class DashboardService {
         }
       }
       attendanceRate30d = totalEligible > 0 ? Number(((presentCount / totalEligible) * 100).toFixed(1)) : null;
-    } else if (user.athlete?.id) {
+    } else if (athleteId) {
       const attList = await this.db
         .select({ status: attendances.status })
         .from(attendances)
         .innerJoin(sessions, eq(attendances.sessionId, sessions.id))
         .where(
           and(
-            eq(attendances.athleteId, user.athlete.id),
+            eq(attendances.athleteId, athleteId),
             eq(sessions.status, "COMPLETED"),
             gte(sessions.startsAt, thirtyDaysAgo),
             isNull(sessions.deletedAt),
@@ -442,9 +455,9 @@ export class DashboardService {
 
     // 8. Athlete: Statistik Saya
     let myStats: any;
-    if (!isStaff && user.athlete?.id) {
+    if (!isStaff && athleteId) {
       try {
-        const profile = await this.statisticsService.getPlayerProfile(user.athlete.id, user.id, true);
+        const profile = await this.statisticsService.getPlayerProfile(athleteId, user.id, true);
         myStats = {
           gp: profile.summary.gp,
           pts: profile.summary.pts,
@@ -459,6 +472,13 @@ export class DashboardService {
           avgEff: 0,
         };
       }
+    } else if (!isStaff) {
+      myStats = {
+        gp: 0,
+        pts: 0,
+        fgPct: null,
+        avgEff: 0,
+      };
     }
 
     // 9. Hasil Terakhir (last 5 finished matches)
