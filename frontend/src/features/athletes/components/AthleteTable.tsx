@@ -101,7 +101,7 @@ export const AthleteTable = memo(function AthleteTable({
             <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-border text-xs">
               <div className="flex items-center gap-1.5 flex-wrap">
                 <Badge variant={athlete.sex === "MALE" ? "info" : "primary"}>
-                  {athlete.sex === "MALE" ? "Putra (L)" : "Putri (P)"}
+                  {athlete.sex === "MALE" ? "Laki - Laki" : "Perempuan"}
                 </Badge>
                 <Badge variant={athlete.status === "ACTIVE" ? "success" : "secondary"} dot>
                   {athlete.status === "ACTIVE" ? "Aktif" : "Nonaktif"}
@@ -210,7 +210,7 @@ export const AthleteTable = memo(function AthleteTable({
 
                 <TableCell>
                   <Badge variant={athlete.sex === "MALE" ? "info" : "primary"}>
-                    {athlete.sex === "MALE" ? "Putra (L)" : "Putri (P)"}
+                    {athlete.sex === "MALE" ? "Laki - Laki" : "Perempuan"}
                   </Badge>
                 </TableCell>
 

@@ -456,7 +456,7 @@ export function LineupEditor({ match, onSaved }: LineupEditorProps) {
                             : "bg-pink-500/10 text-pink-700 dark:text-pink-400",
                         )}
                       >
-                        {item.sex === "MALE" ? "Putra (L)" : "Putri (P)"}
+                        {item.sex === "MALE" ? "Laki - Laki" : "Perempuan"}
                       </span>
                     </td>
                     <td className="py-2 px-3">

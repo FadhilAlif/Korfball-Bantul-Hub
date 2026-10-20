@@ -10,7 +10,7 @@ export const athleteFormSchema = z.object({
     .optional()
     .transform((v) => (v && v.length > 0 ? v : null)),
   sex: z.enum(["MALE", "FEMALE"], {
-    message: "Jenis kelamin wajib dipilih (Putra / Putri)",
+    message: "Jenis kelamin wajib dipilih (Laki - Laki / Perempuan)",
   }),
   jerseyNumber: z
     .union([z.string(), z.number(), z.null(), z.undefined()])

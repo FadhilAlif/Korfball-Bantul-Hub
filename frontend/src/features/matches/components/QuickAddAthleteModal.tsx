@@ -103,8 +103,8 @@ export function QuickAddAthleteModal({ open, teamId, teamName, onSuccess, onClos
                   <SelectValue placeholder="Pilih L/P" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="MALE">Putra (L)</SelectItem>
-                  <SelectItem value="FEMALE">Putri (P)</SelectItem>
+                  <SelectItem value="MALE">Laki - Laki</SelectItem>
+                  <SelectItem value="FEMALE">Perempuan</SelectItem>
                 </SelectContent>
               </Select>
             </div>

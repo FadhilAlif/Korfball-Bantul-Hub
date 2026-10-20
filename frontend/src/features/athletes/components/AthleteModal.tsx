@@ -151,7 +151,7 @@ export function AthleteModal({ isOpen, onClose, athlete, teams }: AthleteModalPr
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-          <FormField label="Kategori (L / P)" required error={errors.sex?.message}>
+          <FormField label="Jenis Kelamin" required error={errors.sex?.message}>
             <div className="grid grid-cols-2 gap-2">
               <button
                 type="button"
@@ -162,7 +162,7 @@ export function AthleteModal({ isOpen, onClose, athlete, teams }: AthleteModalPr
                     : "border-input bg-background text-muted-foreground hover:bg-muted"
                 }`}
               >
-                Putra (L)
+                Laki - Laki
               </button>
               <button
                 type="button"
@@ -173,7 +173,7 @@ export function AthleteModal({ isOpen, onClose, athlete, teams }: AthleteModalPr
                     : "border-input bg-background text-muted-foreground hover:bg-muted"
                 }`}
               >
-                Putri (P)
+                Perempuan
               </button>
             </div>
           </FormField>
