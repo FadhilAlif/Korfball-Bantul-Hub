@@ -114,11 +114,19 @@ export function SessionLocationPicker({
         setTimeout(() => {
           map.invalidateSize();
         }, 120);
+
+        if (mapContainerRef.current && typeof ResizeObserver !== "undefined") {
+          const resizeObserver = new ResizeObserver(() => {
+            map.invalidateSize();
+          });
+          resizeObserver.observe(mapContainerRef.current);
+        }
       } else {
         markerRef.current?.setLatLng([activeLat, activeLng]);
         circleRef.current?.setLatLng([activeLat, activeLng]);
         circleRef.current?.setRadius(safeRadius);
         mapInstanceRef.current.panTo([activeLat, activeLng], { animate: true });
+        mapInstanceRef.current.invalidateSize();
       }
     });
 
@@ -263,7 +271,7 @@ export function SessionLocationPicker({
       {hasCoordinates ? (
         <>
           {/* Interactive Leaflet Map */}
-          <div className="relative overflow-hidden rounded-lg border border-border bg-muted h-48 w-full z-0">
+          <div className="relative overflow-hidden rounded-lg border border-border bg-muted h-40 sm:h-44 w-full z-0">
             <div ref={mapContainerRef} className="h-full w-full" />
           </div>
 

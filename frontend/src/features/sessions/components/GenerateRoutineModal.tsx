@@ -66,71 +66,81 @@ export function GenerateRoutineModal({ isOpen, onClose }: GenerateRoutineModalPr
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title="Generate Jadwal Latihan Rutin">
-      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-3.5 pt-1">
-        <div className="p-3 rounded-lg border border-border bg-muted/40 text-xs space-y-1">
-          <div className="font-semibold text-foreground flex items-center gap-1.5">
-            <CalendarCheck2 size={14} className="text-primary" />
-            Jadwal Standar Korfball Bantul:
-          </div>
-          <ul className="list-disc list-inside text-muted-foreground space-y-0.5">
-            <li>Setiap Selasa pukul 18.00 – 20.00 WIB</li>
-            <li>Setiap Sabtu pukul 19.00 – 21.00 WIB</li>
-          </ul>
-          <p className="text-muted-foreground pt-1">
-            Sesi pada tanggal yang sudah memiliki jadwal akan dilewati secara otomatis (idempoten).
-          </p>
-        </div>
-
+    <Modal isOpen={isOpen} onClose={onClose} title="Generate Jadwal Latihan Rutin" maxWidth="2xl">
+      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 pt-1">
         {errors.root && <Alert message={errors.root.message ?? "Terjadi kesalahan"} />}
 
-        <FormField label="Rentang Waktu Generate" required error={errors.weeks?.message}>
-          <Select
-            value={weeksValue}
-            onChange={(v) => setValue("weeks", Number(v), { shouldValidate: true })}
-            options={WEEKS_OPTIONS}
-          />
-        </FormField>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+          {/* Kolom Kiri: Konfigurasi Rutin */}
+          <div className="lg:col-span-5 flex flex-col gap-3.5">
+            <div className="p-3 rounded-lg border border-border bg-muted/40 text-xs space-y-1.5">
+              <div className="font-semibold text-foreground flex items-center gap-1.5">
+                <CalendarCheck2 size={14} className="text-primary" />
+                Jadwal Standar Korfball Bantul:
+              </div>
+              <ul className="list-disc list-inside text-muted-foreground space-y-0.5">
+                <li>Setiap Selasa: 18.00 – 20.00 WIB</li>
+                <li>Setiap Sabtu: 19.00 – 21.00 WIB</li>
+              </ul>
+              <p className="text-muted-foreground pt-1 text-[11px] leading-relaxed">
+                Sesi pada tanggal yang sudah memiliki jadwal akan dilewati secara otomatis (idempoten).
+              </p>
+            </div>
 
-        <FormField label="Lokasi / Venue Default" htmlFor="routine-venue" required error={errors.venue?.message}>
-          <Input
-            id="routine-venue"
-            {...register("venue")}
-            iconLeft={<MapPin size={15} />}
-            error={errors.venue?.message}
-          />
-        </FormField>
+            <FormField label="Rentang Waktu Generate" required error={errors.weeks?.message}>
+              <Select
+                value={weeksValue}
+                onChange={(v) => setValue("weeks", Number(v), { shouldValidate: true })}
+                options={WEEKS_OPTIONS}
+              />
+            </FormField>
 
-        <SessionLocationPicker
-          venue={watchedVenue}
-          latitude={watchedLat}
-          longitude={watchedLng}
-          radiusMeters={watchedRadius}
-          onChangeVenue={(v) => setValue("venue", v, { shouldValidate: true })}
-          onChangeCoordinates={({ latitude, longitude }) => {
-            setValue("latitude", latitude, { shouldValidate: true });
-            setValue("longitude", longitude, { shouldValidate: true });
-          }}
-          onChangeRadius={(r) => setValue("radiusMeters", r, { shouldValidate: true })}
-          errorMessage={errors.latitude?.message || errors.longitude?.message || errors.radiusMeters?.message}
-        />
+            <FormField
+              label="Toleransi Terlambat (Menit)"
+              htmlFor="routine-tolerance"
+              error={errors.lateToleranceMinutes?.message}
+            >
+              <Input
+                id="routine-tolerance"
+                type="number"
+                min={0}
+                max={120}
+                {...register("lateToleranceMinutes")}
+                error={errors.lateToleranceMinutes?.message}
+              />
+            </FormField>
+          </div>
 
-        <FormField
-          label="Toleransi Terlambat (Menit)"
-          htmlFor="routine-tolerance"
-          error={errors.lateToleranceMinutes?.message}
-        >
-          <Input
-            id="routine-tolerance"
-            type="number"
-            min={0}
-            max={120}
-            {...register("lateToleranceMinutes")}
-            error={errors.lateToleranceMinutes?.message}
-          />
-        </FormField>
+          {/* Kolom Kanan: Lokasi & Geofence GPS */}
+          <div className="lg:col-span-7 flex flex-col gap-3.5">
+            <FormField label="Lokasi / Venue Default" htmlFor="routine-venue" required error={errors.venue?.message}>
+              <Input
+                id="routine-venue"
+                {...register("venue")}
+                iconLeft={<MapPin size={15} />}
+                placeholder="WIFA SPORT CENTER"
+                error={errors.venue?.message}
+              />
+            </FormField>
 
-        <div className="flex justify-end gap-2 pt-2">
+            <SessionLocationPicker
+              venue={watchedVenue}
+              latitude={watchedLat}
+              longitude={watchedLng}
+              radiusMeters={watchedRadius}
+              onChangeVenue={(v) => setValue("venue", v, { shouldValidate: true })}
+              onChangeCoordinates={({ latitude, longitude }) => {
+                setValue("latitude", latitude, { shouldValidate: true });
+                setValue("longitude", longitude, { shouldValidate: true });
+              }}
+              onChangeRadius={(r) => setValue("radiusMeters", r, { shouldValidate: true })}
+              errorMessage={errors.latitude?.message || errors.longitude?.message || errors.radiusMeters?.message}
+            />
+          </div>
+        </div>
+
+        {/* Sticky Action Footer */}
+        <div className="sticky bottom-0 -mx-5 sm:-mx-6 -mb-4 px-5 sm:px-6 py-3 bg-card/95 backdrop-blur-xs border-t border-border flex items-center justify-end gap-2.5 z-10 mt-2">
           <Button type="button" variant="secondary" onClick={onClose}>
             Batal
           </Button>
