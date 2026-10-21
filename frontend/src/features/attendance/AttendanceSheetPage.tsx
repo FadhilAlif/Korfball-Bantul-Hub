@@ -42,17 +42,31 @@ const STATUS_BUTTONS: Array<{
   },
 ];
 
-function MethodBadge({ method, isDirty }: { method: AttendanceMethod | null; isDirty: boolean }) {
+function MethodBadge({
+  method,
+  isDirty,
+  distanceMeters,
+}: {
+  method: AttendanceMethod | null;
+  isDirty: boolean;
+  distanceMeters?: number | null;
+}) {
   if (isDirty) {
     return <Badge variant="warning">Belum Disimpan</Badge>;
   }
   if (method === "SELF_CHECKIN") {
-    return <Badge variant="info">Self Check-in</Badge>;
+    return (
+      <Badge variant="info">
+        {distanceMeters !== null && distanceMeters !== undefined
+          ? `Self Check-in · GPS (${distanceMeters}m)`
+          : "Self Check-in · Kode"}
+      </Badge>
+    );
   }
   if (method === "EXCUSE_REQUEST") {
     return <Badge variant="primary">Izin Mandiri</Badge>;
   }
-  if (method === "OFFICIAL") {
+  if (method === "OFFICIAL" || method === "MANUAL") {
     return <Badge variant="secondary">Official</Badge>;
   }
   return <span className="text-xs text-muted-foreground">Belum dicatat</span>;
@@ -268,7 +282,7 @@ export function AttendanceSheetPage({ sessionId }: AttendanceSheetPageProps) {
                       </span>
                     )}
                     <Badge variant={row.sex === "MALE" ? "info" : "primary"}>{row.sex === "MALE" ? "L" : "P"}</Badge>
-                    <MethodBadge method={row.method} isDirty={isDirty} />
+                    <MethodBadge method={row.method} isDirty={isDirty} distanceMeters={row.checkinDistanceMeters} />
                   </div>
                   <div className="text-xs text-muted-foreground mt-0.5 flex items-center gap-2">
                     {row.checkedInAt && (

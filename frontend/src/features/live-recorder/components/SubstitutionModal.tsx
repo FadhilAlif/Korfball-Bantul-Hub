@@ -81,7 +81,7 @@ export function SubstitutionModal({ open, side, teamName, players, onConfirm, on
                     <div className="min-w-0 flex-1">
                       <div className="text-xs truncate">{p.athleteNickname || p.athleteName}</div>
                       <div className="text-[10px] text-muted-foreground font-semibold">
-                        {p.sex === "MALE" ? "Putra (L)" : "Putri (P)"}
+                        {p.sex === "MALE" ? "Laki - Laki" : "Perempuan"}
                       </div>
                     </div>
                   </button>
@@ -95,12 +95,12 @@ export function SubstitutionModal({ open, side, teamName, players, onConfirm, on
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1">
               <UserPlus size={13} className="text-emerald-500" />
               2. Pilih Pemain Masuk (Cadangan{" "}
-              {selectedOutPlayer ? `— ${selectedOutPlayer.sex === "MALE" ? "Putra" : "Putri"}` : ""})
+              {selectedOutPlayer ? `— ${selectedOutPlayer.sex === "MALE" ? "Laki - Laki" : "Perempuan"}` : ""})
             </span>
             {benchPlayers.length === 0 ? (
               <div className="text-xs text-muted-foreground p-3 rounded-xl border border-dashed border-border text-center">
                 {selectedOutPlayer
-                  ? `Tidak ada pemain cadangan dengan jenis kelamin ${selectedOutPlayer.sex === "MALE" ? "Putra (L)" : "Putri (P)"}.`
+                  ? `Tidak ada pemain cadangan dengan jenis kelamin ${selectedOutPlayer.sex === "MALE" ? "Laki - Laki" : "Perempuan"}.`
                   : "Pilih pemain keluar terlebih dahulu."}
               </div>
             ) : (
@@ -125,7 +125,7 @@ export function SubstitutionModal({ open, side, teamName, players, onConfirm, on
                       <div className="min-w-0 flex-1">
                         <div className="text-xs truncate">{p.athleteNickname || p.athleteName}</div>
                         <div className="text-[10px] text-muted-foreground font-semibold">
-                          {p.sex === "MALE" ? "Putra (L)" : "Putri (P)"}
+                          {p.sex === "MALE" ? "Laki - Laki" : "Perempuan"}
                         </div>
                       </div>
                     </button>

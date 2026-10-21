@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { memo, type ReactNode } from "react";
+import { isNavItemActive } from "./isNavItemActive";
 import { navBadgeVariants, navItemVariants } from "./NavItem.variants";
 
 interface NavItemProps {
@@ -16,7 +17,7 @@ interface NavItemProps {
 
 export const NavItem = memo(function NavItem({ href, label, icon, badge, collapsed = false, onClick }: NavItemProps) {
   const pathname = usePathname();
-  const active = href === "/dashboard" ? pathname === href : pathname.startsWith(href);
+  const active = isNavItemActive(href, pathname);
 
   return (
     <Link

@@ -23,8 +23,13 @@ import {
   users,
 } from "../../database/schema/index.js";
 import { buildWorkbook } from "../../lib/exporters/table-workbook.js";
-import { computeAttendanceRate } from "./attendance.calculator.js";
-import type { AttendanceSummaryQuery, BulkAttendanceInput, MyAttendanceQuery } from "./attendance.schemas.js";
+import { calculateHaversineDistanceMeters, computeAttendanceRate } from "./attendance.calculator.js";
+import type {
+  AttendanceSummaryQuery,
+  BulkAttendanceInput,
+  MyAttendanceQuery,
+  SelfCheckinInput,
+} from "./attendance.schemas.js";
 import { CheckinThrottleService } from "./checkin-throttle.service.js";
 
 export interface AttendanceSheetRow {
@@ -37,6 +42,7 @@ export interface AttendanceSheetRow {
   status: AttendanceStatus | null;
   method: AttendanceMethod | null;
   checkedInAt: Date | string | null;
+  checkinDistanceMeters?: number | null;
   note: string | null;
   recordedBy: number | null;
   recordedByName?: string | null;
@@ -52,6 +58,9 @@ export interface AttendanceSheetResponse {
     startsAt: Date | string;
     endsAt: Date | string;
     venue: string | null;
+    latitude?: number | null;
+    longitude?: number | null;
+    radiusMeters?: number;
     lateToleranceMinutes: number;
     checkinCode: string;
     status: string;
@@ -167,6 +176,7 @@ export class AttendanceService {
           status: null,
           method: null,
           checkedInAt: null,
+          checkinDistanceMeters: null,
           note: null,
           recordedBy: null,
           recordedByName: null,
@@ -189,6 +199,7 @@ export class AttendanceService {
         status: st,
         method: rec.attendance.method,
         checkedInAt: rec.attendance.checkedInAt,
+        checkinDistanceMeters: rec.attendance.checkinDistanceMeters ?? null,
         note: rec.attendance.note,
         recordedBy: rec.attendance.recordedBy,
         recordedByName: rec.recordedByName ?? null,
@@ -205,6 +216,9 @@ export class AttendanceService {
         startsAt: session.startsAt,
         endsAt: session.endsAt,
         venue: session.venue,
+        latitude: session.latitude ?? null,
+        longitude: session.longitude ?? null,
+        radiusMeters: session.radiusMeters ?? 100,
         lateToleranceMinutes: session.lateToleranceMinutes,
         checkinCode: session.checkinCode,
         status: session.status,
@@ -337,21 +351,25 @@ export class AttendanceService {
   }
 
   /**
-   * Self check-in by athlete:
-   * Enforces BR-09 (code & window), BR-10 (server time status calculation),
-   * BR-11 (duplicate / excuse overwrite), and BR-15 (rate limit 5 failed / 10m).
+   * Self check-in by athlete (Hybrid: GPS Geofence or 6-character code):
+   * Enforces BR-09 (code/session & window), BR-10 (server time status calculation),
+   * BR-11 (duplicate / excuse overwrite), BR-15 (rate limit 5 failed / 10m),
+   * and BR-34 (Haversine distance <= session.radiusMeters for GPS check-in).
    */
   async selfCheckin(
-    code: string,
+    inputOrCode: SelfCheckinInput | string,
     userId: number,
   ): Promise<{
     sessionTitle: string;
     status: AttendanceStatus;
     checkedInAt: Date;
+    distanceMeters: number | null;
     message: string;
   }> {
+    const payload: SelfCheckinInput = typeof inputOrCode === "string" ? { code: inputOrCode } : inputOrCode;
+
     // BR-15: Rate limiting on failed code attempts
-    if (this.throttle.isBlocked(userId)) {
+    if ("code" in payload && this.throttle.isBlocked(userId)) {
       throw new HttpException("Terlalu banyak percobaan, coba lagi nanti.", HttpStatus.TOO_MANY_REQUESTS);
     }
 
@@ -371,24 +389,75 @@ export class AttendanceService {
       throw new BadRequestException("User tidak tertaut ke atlet aktif tim internal.");
     }
 
-    // Find scheduled session with matching code
-    const normalizedCode = code.trim().toUpperCase();
-    const [session] = await this.db
-      .select()
-      .from(sessions)
-      .where(
-        and(
-          eq(sessions.teamId, athlete.teamId),
-          eq(sessions.status, "SCHEDULED"),
-          sql`upper(${sessions.checkinCode}) = ${normalizedCode}`,
-          isNull(sessions.deletedAt),
-        ),
-      )
-      .limit(1);
+    let session: typeof sessions.$inferSelect | undefined;
+    let checkinLatitude: number | null = null;
+    let checkinLongitude: number | null = null;
+    let checkinDistanceMeters: number | null = null;
 
-    if (!session) {
-      this.throttle.recordFailedAttempt(userId);
-      throw new BadRequestException("Kode check-in salah.");
+    if ("code" in payload) {
+      // Mode 2 (Fallback): Find scheduled session with matching 6-character code
+      const normalizedCode = payload.code.trim().toUpperCase();
+      const [foundSession] = await this.db
+        .select()
+        .from(sessions)
+        .where(
+          and(
+            eq(sessions.teamId, athlete.teamId),
+            eq(sessions.status, "SCHEDULED"),
+            sql`upper(${sessions.checkinCode}) = ${normalizedCode}`,
+            isNull(sessions.deletedAt),
+          ),
+        )
+        .limit(1);
+
+      if (!foundSession) {
+        this.throttle.recordFailedAttempt(userId);
+        throw new BadRequestException("Kode check-in salah.");
+      }
+      session = foundSession;
+    } else {
+      // Mode 1: GPS Geofence Check-in (BR-34)
+      const [foundSession] = await this.db
+        .select()
+        .from(sessions)
+        .where(
+          and(
+            eq(sessions.id, payload.sessionId),
+            eq(sessions.teamId, athlete.teamId),
+            eq(sessions.status, "SCHEDULED"),
+            isNull(sessions.deletedAt),
+          ),
+        )
+        .limit(1);
+
+      if (!foundSession) {
+        throw new NotFoundException("Sesi latihan terjadwal tidak ditemukan.");
+      }
+
+      if (foundSession.latitude === null || foundSession.longitude === null) {
+        throw new BadRequestException(
+          "Sesi ini tidak memiliki titik lokasi GPS. Silakan gunakan Kode Check-In 6 karakter.",
+        );
+      }
+
+      const maxRadius = foundSession.radiusMeters ?? 100;
+      const distanceMeters = calculateHaversineDistanceMeters(
+        payload.latitude,
+        payload.longitude,
+        foundSession.latitude,
+        foundSession.longitude,
+      );
+
+      if (distanceMeters > maxRadius) {
+        throw new BadRequestException(
+          `Lokasi Anda berada di luar radius presensi (Jarak: ${distanceMeters}m, Maksimal: ${maxRadius}m).`,
+        );
+      }
+
+      session = foundSession;
+      checkinLatitude = payload.latitude;
+      checkinLongitude = payload.longitude;
+      checkinDistanceMeters = distanceMeters;
     }
 
     const now = new Date();
@@ -426,6 +495,9 @@ export class AttendanceService {
         status,
         method: "SELF_CHECKIN",
         checkedInAt: now,
+        checkinLatitude,
+        checkinLongitude,
+        checkinDistanceMeters,
         recordedBy: userId,
       })
       .onConflictDoUpdate({
@@ -434,6 +506,9 @@ export class AttendanceService {
           status,
           method: "SELF_CHECKIN",
           checkedInAt: now,
+          checkinLatitude,
+          checkinLongitude,
+          checkinDistanceMeters,
           note: null, // clear previous excuse reason if any
           recordedBy: userId,
           updatedAt: now,
@@ -441,7 +516,9 @@ export class AttendanceService {
       });
 
     // Reset failed counter on success
-    this.throttle.reset(userId);
+    if ("code" in payload) {
+      this.throttle.reset(userId);
+    }
 
     const message =
       status === "PRESENT"
@@ -452,6 +529,7 @@ export class AttendanceService {
       sessionTitle: session.title,
       status,
       checkedInAt: now,
+      distanceMeters: checkinDistanceMeters,
       message,
     };
   }
@@ -659,6 +737,7 @@ export class AttendanceService {
         status: r.attendance.status,
         method: r.attendance.method,
         checkedInAt: r.attendance.checkedInAt,
+        checkinDistanceMeters: r.attendance.checkinDistanceMeters ?? null,
         note: r.attendance.note,
       })),
     };

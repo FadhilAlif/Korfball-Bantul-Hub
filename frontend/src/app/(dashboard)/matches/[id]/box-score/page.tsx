@@ -1,4 +1,5 @@
 import { BoxScorePage } from "@/features/matches/components/BoxScorePage";
+import { ProtectedRoute } from "@/shared/components/guard";
 
 interface BoxScoreRouteProps {
   params: Promise<{ id: string }>;
@@ -12,5 +13,9 @@ export default async function BoxScoreRoute({ params }: BoxScoreRouteProps) {
   const { id } = await params;
   const matchId = Number.parseInt(id, 10);
 
-  return <BoxScorePage matchId={matchId} />;
+  return (
+    <ProtectedRoute requiredPermission="matches:read">
+      <BoxScorePage matchId={matchId} />
+    </ProtectedRoute>
+  );
 }

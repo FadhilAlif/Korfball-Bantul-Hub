@@ -4,6 +4,42 @@ const isoDateStringSchema = z.string().refine((val) => !Number.isNaN(Date.parse(
   message: "Format tanggal tidak valid (gunakan ISO 8601).",
 });
 
+export const DEFAULT_VENUE_PRESET = {
+  venue: "WIFA SPORT CENTER",
+  latitude: -7.900181586573576,
+  longitude: 110.32812616243315,
+  radiusMeters: 100,
+} as const;
+
+const latitudeSchema = z
+  .number()
+  .min(-90, "Latitude harus berada di antara -90 dan 90.")
+  .max(90, "Latitude harus berada di antara -90 dan 90.")
+  .optional()
+  .nullable();
+
+const longitudeSchema = z
+  .number()
+  .min(-180, "Longitude harus berada di antara -180 dan 180.")
+  .max(180, "Longitude harus berada di antara -180 dan 180.")
+  .optional()
+  .nullable();
+
+const radiusMetersSchema = z
+  .number()
+  .int()
+  .min(20, "Radius harus antara 20 hingga 2000 meter.")
+  .max(2000, "Radius harus antara 20 hingga 2000 meter.");
+
+function hasValidCoordPair(data: {
+  latitude?: number | null | undefined;
+  longitude?: number | null | undefined;
+}): boolean {
+  const hasLat = data.latitude !== undefined && data.latitude !== null;
+  const hasLon = data.longitude !== undefined && data.longitude !== null;
+  return hasLat === hasLon;
+}
+
 export const createSessionSchema = z
   .object({
     teamId: z.number().int().positive().optional(),
@@ -12,6 +48,9 @@ export const createSessionSchema = z
     startsAt: isoDateStringSchema,
     endsAt: isoDateStringSchema,
     venue: z.string().trim().max(200, "Venue maksimal 200 karakter").optional().nullable(),
+    latitude: latitudeSchema,
+    longitude: longitudeSchema,
+    radiusMeters: radiusMetersSchema.optional().default(100),
     lateToleranceMinutes: z
       .number()
       .int()
@@ -24,6 +63,10 @@ export const createSessionSchema = z
   .refine((data) => new Date(data.endsAt) > new Date(data.startsAt), {
     message: "Jam selesai harus setelah jam mulai.",
     path: ["endsAt"],
+  })
+  .refine(hasValidCoordPair, {
+    message: "Koordinat latitude dan longitude harus diisi lengkap.",
+    path: ["latitude"],
   });
 
 export const updateSessionSchema = z
@@ -38,6 +81,9 @@ export const updateSessionSchema = z
     startsAt: isoDateStringSchema.optional(),
     endsAt: isoDateStringSchema.optional(),
     venue: z.string().trim().max(200, "Venue maksimal 200 karakter").optional().nullable(),
+    latitude: latitudeSchema,
+    longitude: longitudeSchema,
+    radiusMeters: radiusMetersSchema.optional(),
     lateToleranceMinutes: z
       .number()
       .int()
@@ -57,19 +103,39 @@ export const updateSessionSchema = z
       message: "Jam selesai harus setelah jam mulai.",
       path: ["endsAt"],
     },
+  )
+  .refine(
+    (data) => {
+      if (data.latitude !== undefined || data.longitude !== undefined) {
+        return hasValidCoordPair(data);
+      }
+      return true;
+    },
+    {
+      message: "Koordinat latitude dan longitude harus diisi lengkap.",
+      path: ["latitude"],
+    },
   );
 
-export const generateRoutineSchema = z.object({
-  teamId: z.number().int().positive().optional(),
-  weeks: z.number().int().min(1, "Minimal 1 minggu").max(4, "Maksimal 4 minggu").optional().default(4),
-  startDate: z
-    .string()
-    .trim()
-    .regex(/^\d{4}-\d{2}-\d{2}$/, "Format startDate harus YYYY-MM-DD")
-    .optional(),
-  venue: z.string().trim().max(200).optional().default("GOR Stadion Sultan Agung Bantul"),
-  lateToleranceMinutes: z.number().int().min(0).max(120).optional().default(15),
-});
+export const generateRoutineSchema = z
+  .object({
+    teamId: z.number().int().positive().optional(),
+    weeks: z.number().int().min(1, "Minimal 1 minggu").max(4, "Maksimal 4 minggu").optional().default(4),
+    startDate: z
+      .string()
+      .trim()
+      .regex(/^\d{4}-\d{2}-\d{2}$/, "Format startDate harus YYYY-MM-DD")
+      .optional(),
+    venue: z.string().trim().max(200).optional().default(DEFAULT_VENUE_PRESET.venue),
+    latitude: latitudeSchema.default(DEFAULT_VENUE_PRESET.latitude),
+    longitude: longitudeSchema.default(DEFAULT_VENUE_PRESET.longitude),
+    radiusMeters: radiusMetersSchema.optional().default(DEFAULT_VENUE_PRESET.radiusMeters),
+    lateToleranceMinutes: z.number().int().min(0).max(120).optional().default(15),
+  })
+  .refine(hasValidCoordPair, {
+    message: "Koordinat latitude dan longitude harus diisi lengkap.",
+    path: ["latitude"],
+  });
 
 export const listSessionsQuerySchema = z.object({
   from: z.string().trim().optional(),

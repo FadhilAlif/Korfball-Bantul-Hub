@@ -1,14 +1,27 @@
 "use client";
 
-import { Calendar, FileSpreadsheet, Filter, Loader2, MapPin, Play, Plus, RefreshCw, Trophy } from "lucide-react";
+import {
+  Calendar,
+  FileSpreadsheet,
+  Filter,
+  Loader2,
+  MapPin,
+  Play,
+  Plus,
+  RefreshCw,
+  Trash2,
+  Trophy,
+} from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import { PageHeader } from "@/shared/components/common";
+import { toast } from "sonner";
+import { ConfirmDeleteModal, PageHeader } from "@/shared/components/common";
 import { Badge } from "@/shared/components/ui/badge";
 import { Button, buttonVariants } from "@/shared/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select";
+import { usePermission } from "@/shared/hooks";
 import { formatWibDateTime } from "@/shared/lib/format-date";
-import { useMatches } from "../hooks/useMatches";
+import { useDeleteMatch, useMatches } from "../hooks/useMatches";
 import type { MatchItem } from "../types";
 
 export function MatchesListPage() {
@@ -25,6 +38,28 @@ export function MatchesListPage() {
 
   const matches = data?.data ?? [];
   const meta = data?.meta;
+  const canCreateMatch = usePermission("matches:create");
+  const canDeleteMatch = usePermission("matches:delete");
+
+  const [deletingMatch, setDeletingMatch] = useState<MatchItem | null>(null);
+  const deleteMatchMutation = useDeleteMatch();
+
+  const handleConfirmDelete = () => {
+    if (!deletingMatch) return;
+    deleteMatchMutation.mutate(deletingMatch.id, {
+      onSuccess: () => {
+        toast.success("Pertandingan berhasil dihapus.");
+        setDeletingMatch(null);
+      },
+      onError: (err: unknown) => {
+        const errorResponse = err as { response?: { data?: { message?: string } }; message?: string };
+        toast.error(
+          errorResponse?.response?.data?.message || errorResponse?.message || "Gagal menghapus pertandingan.",
+        );
+        setDeletingMatch(null);
+      },
+    });
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -38,10 +73,12 @@ export function MatchesListPage() {
             <RefreshCw size={14} />
             <span className="hidden sm:inline">Refresh</span>
           </Button>
-          <Link href="/matches/new" className={buttonVariants({ variant: "default", size: "sm" })}>
-            <Plus size={15} />
-            <span>Buat Pertandingan</span>
-          </Link>
+          {canCreateMatch && (
+            <Link href="/matches/new" className={buttonVariants({ variant: "default", size: "sm" })}>
+              <Plus size={15} />
+              <span>Buat Pertandingan</span>
+            </Link>
+          )}
         </div>
       </PageHeader>
 
@@ -69,7 +106,6 @@ export function MatchesListPage() {
               <SelectItem value="LIVE">Live Sekarang</SelectItem>
               <SelectItem value="SCHEDULED">Terjadwal</SelectItem>
               <SelectItem value="FINISHED">Selesai</SelectItem>
-              <SelectItem value="PAUSED">Jeda / Paused</SelectItem>
               <SelectItem value="CANCELLED">Dibatalkan</SelectItem>
             </SelectContent>
           </Select>
@@ -130,7 +166,7 @@ export function MatchesListPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {matches.map((match) => (
-            <MatchCard key={match.id} match={match} />
+            <MatchCard key={match.id} match={match} canDelete={canDeleteMatch} onSelectDelete={setDeletingMatch} />
           ))}
         </div>
       )}
@@ -161,11 +197,32 @@ export function MatchesListPage() {
           </Button>
         </div>
       )}
+
+      {deletingMatch && (
+        <ConfirmDeleteModal
+          isOpen={!!deletingMatch}
+          onClose={() => setDeletingMatch(null)}
+          onConfirm={handleConfirmDelete}
+          title={`Hapus pertandingan ${deletingMatch.homeTeamName} vs ${deletingMatch.awayTeamName}?`}
+          description="Pertandingan yang dihapus tidak dapat dipulihkan. Hanya pertandingan terjadwal atau dibatalkan tanpa riwayat event yang dapat dihapus."
+          confirmText={`${deletingMatch.homeTeamName} vs ${deletingMatch.awayTeamName}`}
+          confirmLabel="Hapus Pertandingan"
+          isLoading={deleteMatchMutation.isPending}
+        />
+      )}
     </div>
   );
 }
 
-function MatchCard({ match }: { match: MatchItem }) {
+function MatchCard({
+  match,
+  canDelete = false,
+  onSelectDelete,
+}: {
+  match: MatchItem;
+  canDelete?: boolean;
+  onSelectDelete: (match: MatchItem) => void;
+}) {
   const isLive = match.status === "LIVE";
   const isFinished = match.status === "FINISHED";
   const isScheduled = match.status === "SCHEDULED";
@@ -207,6 +264,15 @@ function MatchCard({ match }: { match: MatchItem }) {
           {isScheduled && (
             <Badge variant="outline" className="text-muted-foreground text-[10px] py-0 px-1.5">
               JADWAL
+            </Badge>
+          )}
+
+          {match.status === "CANCELLED" && (
+            <Badge
+              variant="outline"
+              className="text-destructive border-destructive/30 bg-destructive/10 text-[10px] py-0 px-1.5"
+            >
+              BATAL
             </Badge>
           )}
         </div>
@@ -264,48 +330,67 @@ function MatchCard({ match }: { match: MatchItem }) {
       </div>
 
       {/* Action Buttons */}
-      <div className="flex items-center justify-end gap-2 pt-1">
-        <Link href={`/matches/${match.id}`} className={buttonVariants({ variant: "outline", size: "sm" })}>
-          Detail & Lineup
-        </Link>
+      <div className="flex items-center justify-between gap-2 pt-1 flex-wrap">
+        <div>
+          {canDelete && (isScheduled || match.status === "CANCELLED") && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onSelectDelete(match)}
+              className="text-destructive hover:bg-destructive/10 hover:text-destructive gap-1 text-xs h-8 px-2"
+            >
+              <Trash2 size={13} />
+              <span>Hapus</span>
+            </Button>
+          )}
+        </div>
 
-        {isLive && (
-          <Link
-            href={`/matches/${match.id}/record`}
-            className={buttonVariants({
-              variant: "default",
-              size: "sm",
-              className: "bg-red-600 hover:bg-red-700 text-white gap-1",
-            })}
-          >
-            <Play size={11} fill="currentColor" />
-            <span>Live Recorder</span>
+        <div className="flex items-center gap-2 ml-auto">
+          <Link href={`/matches/${match.id}`} className={buttonVariants({ variant: "outline", size: "sm" })}>
+            Detail & Lineup
           </Link>
-        )}
 
-        {isScheduled && (
+          {isLive && (
+            <Link
+              href={`/matches/${match.id}/record`}
+              className={buttonVariants({
+                variant: "default",
+                size: "sm",
+                className: "bg-red-600 hover:bg-red-700 text-white gap-1",
+              })}
+            >
+              <Play size={11} fill="currentColor" />
+              <span>Live Recorder</span>
+            </Link>
+          )}
+
+          {isScheduled && (
+            <Link
+              href={`/matches/${match.id}/record`}
+              className={buttonVariants({ variant: "default", size: "sm", className: "gap-1" })}
+            >
+              <Play size={11} />
+              <span>Mulai Rekam</span>
+            </Link>
+          )}
+
           <Link
-            href={`/matches/${match.id}/record`}
-            className={buttonVariants({ variant: "default", size: "sm", className: "gap-1" })}
+            href={`/matches/${match.id}/box-score`}
+            className={buttonVariants({ variant: "secondary", size: "sm" })}
           >
-            <Play size={11} />
-            <span>Mulai Rekam</span>
+            Box Score
           </Link>
-        )}
 
-        <Link href={`/matches/${match.id}/box-score`} className={buttonVariants({ variant: "secondary", size: "sm" })}>
-          Box Score
-        </Link>
-
-        {isFinished && (
-          <Link
-            href={`/matches/${match.id}/report`}
-            className={buttonVariants({ variant: "ghost", size: "sm", className: "gap-1 text-xs" })}
-          >
-            <FileSpreadsheet size={12} />
-            <span>Laporan</span>
-          </Link>
-        )}
+          {isFinished && (
+            <Link
+              href={`/matches/${match.id}/report`}
+              className={buttonVariants({ variant: "ghost", size: "sm", className: "gap-1 text-xs" })}
+            >
+              <FileSpreadsheet size={12} />
+              <span>Laporan</span>
+            </Link>
+          )}
+        </div>
       </div>
     </div>
   );

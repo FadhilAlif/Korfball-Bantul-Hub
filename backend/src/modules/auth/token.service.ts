@@ -11,11 +11,6 @@ export interface AccessTokenPayload {
   permissions: string[];
 }
 
-const COOKIE_BASE = {
-  httpOnly: true,
-  sameSite: "lax" as const,
-} as const;
-
 @Injectable()
 export class TokenService {
   signAccessToken(payload: AccessTokenPayload): string {
@@ -38,25 +33,46 @@ export class TokenService {
   }
 
   setAuthCookies(res: Response, accessToken: string, refreshToken: string): void {
-    const secure = env.NODE_ENV === "production";
+    const isProd = env.NODE_ENV === "production";
+    const sameSite = env.COOKIE_SAME_SITE ?? (isProd ? "none" : "lax");
+    const secure = sameSite === "none" ? true : isProd;
 
     res.cookie("access_token", accessToken, {
-      ...COOKIE_BASE,
+      httpOnly: true,
+      sameSite,
       secure,
+      domain: env.COOKIE_DOMAIN,
       maxAge: 15 * 60 * 1000,
     });
 
     res.cookie("refresh_token", refreshToken, {
-      ...COOKIE_BASE,
+      httpOnly: true,
+      sameSite,
       secure,
+      domain: env.COOKIE_DOMAIN,
       maxAge: 7 * 24 * 60 * 60 * 1000,
       path: "/api/auth/refresh",
     });
   }
 
   clearAuthCookies(res: Response): void {
-    res.clearCookie("access_token");
-    res.clearCookie("refresh_token", { path: "/api/auth/refresh" });
+    const isProd = env.NODE_ENV === "production";
+    const sameSite = env.COOKIE_SAME_SITE ?? (isProd ? "none" : "lax");
+    const secure = sameSite === "none" ? true : isProd;
+
+    res.clearCookie("access_token", {
+      httpOnly: true,
+      sameSite,
+      secure,
+      domain: env.COOKIE_DOMAIN,
+    });
+    res.clearCookie("refresh_token", {
+      httpOnly: true,
+      sameSite,
+      secure,
+      domain: env.COOKIE_DOMAIN,
+      path: "/api/auth/refresh",
+    });
   }
 
   generateVerificationToken(): string {

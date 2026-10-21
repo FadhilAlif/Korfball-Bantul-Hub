@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { memo, type ReactNode } from "react";
 import { useAuthStore } from "@/shared/stores/authStore";
+import { isNavItemActive } from "../Sidebar/isNavItemActive";
 
 export interface BottomNavItemDef {
   href: string;
@@ -44,11 +45,11 @@ export const BottomNav = memo(function BottomNav({ onOpenMenu }: BottomNavProps)
   return (
     <nav
       aria-label="Mobile bottom navigation"
-      className="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-background/95 backdrop-blur-xs md:hidden pb-[env(safe-area-inset-bottom)]"
+      className="fixed bottom-0 left-0 right-0 z-40 border-t border-border bg-background/95 backdrop-blur-xs md:hidden pb-[env(safe-area-inset-bottom)] print:hidden"
     >
       <div className="flex items-center justify-around h-16 px-2">
         {visibleItems.map((item) => {
-          const active = item.href === "/dashboard" ? pathname === item.href : pathname.startsWith(item.href);
+          const active = isNavItemActive(item.href, pathname);
           return (
             <Link
               key={item.href}

@@ -36,7 +36,7 @@ export class StatisticsController {
   ) {}
 
   @Get("players")
-  @RequirePermissions("stats:read")
+  @RequirePermissions("stats:read", "stats:read_own")
   @UsePipes(new ZodValidationPipe(playerLeaderboardQuerySchema, "query"))
   async getPlayerLeaderboard(@Query() query: PlayerLeaderboardQuery) {
     const result = await this.statisticsService.getPlayerLeaderboard(query);
@@ -74,7 +74,7 @@ export class StatisticsController {
   }
 
   @Get("team")
-  @RequirePermissions("stats:read")
+  @RequirePermissions("stats:read", "stats:read_own")
   @UsePipes(new ZodValidationPipe(teamStatsQuerySchema, "query"))
   async getTeamStats(@Query() query: TeamStatsQuery) {
     const data = await this.statisticsService.getTeamStats(query);

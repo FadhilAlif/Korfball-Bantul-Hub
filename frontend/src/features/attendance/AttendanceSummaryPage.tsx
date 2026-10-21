@@ -184,8 +184,8 @@ export function AttendanceSummaryPage() {
                   </div>
                 </TableCell>
                 <TableCell>
-                  <Badge variant={a.sex === "MALE" ? "info" : "primary"}>
-                    {a.sex === "MALE" ? "Putra (L)" : "Putri (P)"}
+                  <Badge variant={a.sex === "MALE" ? "info" : "pink"}>
+                    {a.sex === "MALE" ? "Laki - Laki" : "Perempuan"}
                   </Badge>
                 </TableCell>
                 <TableCell className="font-semibold text-success">{a.present}</TableCell>

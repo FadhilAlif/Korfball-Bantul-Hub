@@ -32,4 +32,27 @@ describe("Breadcrumb", () => {
     render(<Breadcrumb />);
     expect(screen.getByText("—")).toBeInTheDocument();
   });
+
+  it("does not render static 'RBAC' prefix", () => {
+    vi.mocked(usePathname).mockReturnValue("/matches/9/report");
+    render(<Breadcrumb />);
+    expect(screen.queryByText("RBAC")).not.toBeInTheDocument();
+    expect(screen.getByText("Pertandingan")).toBeInTheDocument();
+    expect(screen.getByText("Detail Pertandingan")).toBeInTheDocument();
+    expect(screen.getByText("Laporan Pertandingan")).toBeInTheDocument();
+  });
+
+  it("renders hierarchical trail for /stats/me", () => {
+    vi.mocked(usePathname).mockReturnValue("/stats/me");
+    render(<Breadcrumb />);
+    expect(screen.getByText("Statistik")).toBeInTheDocument();
+    expect(screen.getByText("Statistik Saya")).toBeInTheDocument();
+  });
+
+  it("renders hierarchical trail for /roles", () => {
+    vi.mocked(usePathname).mockReturnValue("/roles");
+    render(<Breadcrumb />);
+    expect(screen.getByText("Access Control")).toBeInTheDocument();
+    expect(screen.getByText("Roles")).toBeInTheDocument();
+  });
 });

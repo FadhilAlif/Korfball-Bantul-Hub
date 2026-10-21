@@ -1,4 +1,4 @@
-import { Controller, Get, Inject, Res, StreamableFile, UseGuards } from "@nestjs/common";
+import { Controller, Get, Inject, Query, Res, StreamableFile, UseGuards } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
 import type { Response } from "express";
 import { CurrentUser } from "../../common/decorators/current-user.decorator.js";
@@ -19,6 +19,16 @@ export class DashboardController {
   async getDashboardSummary(@CurrentUser() user: AuthenticatedUser) {
     const summary = await this.dashboardService.getDashboardSummary(user);
     return { data: summary };
+  }
+
+  @Get("attendance-trend")
+  async getAttendanceTrend(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query("from") from?: string,
+    @Query("to") to?: string,
+  ) {
+    const trend = await this.dashboardService.getAttendanceTrend(user, from, to);
+    return { data: trend };
   }
 
   @Get("stats")

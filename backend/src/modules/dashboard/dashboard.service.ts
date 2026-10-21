@@ -1,5 +1,5 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { and, count, desc, eq, gt, gte, isNull, lte, ne, or } from "drizzle-orm";
+import { and, count, desc, eq, gt, gte, inArray, isNull, lte, ne, or } from "drizzle-orm";
 import type { AuthenticatedUser } from "../../common/types/authenticated-user.type.js";
 import type { DrizzleDatabase } from "../../database/connection.js";
 import { DRIZZLE_DB } from "../../database/database.module.js";
@@ -17,6 +17,7 @@ import {
   users,
 } from "../../database/schema/index.js";
 import { buildWorkbook } from "../../lib/exporters/table-workbook.js";
+import { parseWibDateRange } from "../sessions/sessions.utils.js";
 import { StatisticsService } from "../statistics/statistics.service.js";
 
 const STATS_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
@@ -177,6 +178,19 @@ export class DashboardService {
       user.roles?.includes("coach") ||
       user.permissions?.some((p) => ["matches:record", "attendance:record", "stats:read"].includes(p));
 
+    // Resolve linked athlete ID for the user if not already attached to user object
+    let athleteId = user.athlete?.id;
+    if (!athleteId && !isStaff) {
+      const [linkedAthlete] = await this.db
+        .select({ id: athletes.id })
+        .from(athletes)
+        .where(and(eq(athletes.userId, user.id), isNull(athletes.deletedAt)))
+        .limit(1);
+      if (linkedAthlete) {
+        athleteId = linkedAthlete.id;
+      }
+    }
+
     // 1. Get internal team
     const [internalTeam] = await this.db
       .select({ id: teams.id, name: teams.name })
@@ -219,11 +233,11 @@ export class DashboardService {
     let todaySession: any = null;
     if (todaySessionRow) {
       let myAttendance: any = null;
-      if (!isStaff && user.athlete?.id) {
+      if (!isStaff && athleteId) {
         const [att] = await this.db
           .select()
           .from(attendances)
-          .where(and(eq(attendances.sessionId, todaySessionRow.id), eq(attendances.athleteId, user.athlete.id)))
+          .where(and(eq(attendances.sessionId, todaySessionRow.id), eq(attendances.athleteId, athleteId)))
           .limit(1);
 
         if (att) {
@@ -244,6 +258,9 @@ export class DashboardService {
         startsAt: todaySessionRow.startsAt.toISOString(),
         endsAt: todaySessionRow.endsAt.toISOString(),
         venue: todaySessionRow.venue,
+        latitude: todaySessionRow.latitude ?? null,
+        longitude: todaySessionRow.longitude ?? null,
+        radiusMeters: todaySessionRow.radiusMeters ?? 100,
         checkinCode: isStaff ? todaySessionRow.checkinCode : undefined,
         myAttendance,
       };
@@ -272,6 +289,9 @@ export class DashboardService {
       startsAt: s.startsAt.toISOString(),
       endsAt: s.endsAt.toISOString(),
       venue: s.venue,
+      latitude: s.latitude ?? null,
+      longitude: s.longitude ?? null,
+      radiusMeters: s.radiusMeters ?? 100,
     }));
 
     // 5. Match Live / Berikutnya
@@ -356,14 +376,14 @@ export class DashboardService {
         }
       }
       attendanceRate30d = totalEligible > 0 ? Number(((presentCount / totalEligible) * 100).toFixed(1)) : null;
-    } else if (user.athlete?.id) {
+    } else if (athleteId) {
       const attList = await this.db
         .select({ status: attendances.status })
         .from(attendances)
         .innerJoin(sessions, eq(attendances.sessionId, sessions.id))
         .where(
           and(
-            eq(attendances.athleteId, user.athlete.id),
+            eq(attendances.athleteId, athleteId),
             eq(sessions.status, "COMPLETED"),
             gte(sessions.startsAt, thirtyDaysAgo),
             isNull(sessions.deletedAt),
@@ -442,9 +462,9 @@ export class DashboardService {
 
     // 8. Athlete: Statistik Saya
     let myStats: any;
-    if (!isStaff && user.athlete?.id) {
+    if (!isStaff && athleteId) {
       try {
-        const profile = await this.statisticsService.getPlayerProfile(user.athlete.id, user.id, true);
+        const profile = await this.statisticsService.getPlayerProfile(athleteId, user.id, true);
         myStats = {
           gp: profile.summary.gp,
           pts: profile.summary.pts,
@@ -459,6 +479,13 @@ export class DashboardService {
           avgEff: 0,
         };
       }
+    } else if (!isStaff) {
+      myStats = {
+        gp: 0,
+        pts: 0,
+        fgPct: null,
+        avgEff: 0,
+      };
     }
 
     // 9. Hasil Terakhir (last 5 finished matches)
@@ -473,20 +500,72 @@ export class DashboardService {
         ),
       )
       .orderBy(desc(matches.scheduledAt))
-      .limit(5);
+      .limit(6);
 
-    const recentMatches = recentMatchesRows.map((m) => ({
-      id: m.id,
-      scheduledAt: m.scheduledAt.toISOString(),
-      matchType: m.type,
-      homeTeamName: teamMap.get(m.homeTeamId) ?? "Home",
-      awayTeamName: teamMap.get(m.awayTeamId) ?? "Away",
-      homeScore: m.homeScore,
-      awayScore: m.awayScore,
-    }));
+    const recentMatches = recentMatchesRows.map((m) => {
+      const isHome = m.homeTeamId === internalTeamId;
+      const teamScore = isHome ? m.homeScore : m.awayScore;
+      const opponentScore = isHome ? m.awayScore : m.homeScore;
+      const opponentName = isHome ? (teamMap.get(m.awayTeamId) ?? "Lawan") : (teamMap.get(m.homeTeamId) ?? "Lawan");
+      const result: "W" | "L" | "D" = teamScore > opponentScore ? "W" : teamScore < opponentScore ? "L" : "D";
+
+      return {
+        id: m.id,
+        scheduledAt: m.scheduledAt.toISOString(),
+        matchType: m.type,
+        homeTeamName: teamMap.get(m.homeTeamId) ?? "Home",
+        awayTeamName: teamMap.get(m.awayTeamId) ?? "Away",
+        homeScore: m.homeScore,
+        awayScore: m.awayScore,
+        teamScore,
+        opponentScore,
+        opponentName,
+        result,
+      };
+    });
+
+    // 10. Tren Presensi Latihan (Last 6 completed sessions default)
+    const attendanceTrend = await this.getAttendanceTrend(user);
+
+    // 11. Akurasi & Distribusi Tembakan Tim (Shot Distribution)
+    let teamShooting: {
+      rim: number;
+      ria: number;
+      pctFgr: number | null;
+      sm: number;
+      sa: number;
+      pctFgs: number | null;
+      pm: number;
+      pa: number;
+      pctP: number | null;
+      totalMade: number;
+      totalAttempts: number;
+      pctFg: number | null;
+    } | null = null;
+
+    try {
+      const teamStats = await this.statisticsService.getTeamStats({ teamId: internalTeamId });
+      teamShooting = {
+        rim: teamStats.shooting.rim,
+        ria: teamStats.shooting.ria,
+        pctFgr: teamStats.shooting.pctFgr,
+        sm: teamStats.shooting.sm,
+        sa: teamStats.shooting.sa,
+        pctFgs: teamStats.shooting.pctFgs,
+        pm: teamStats.shooting.pm,
+        pa: teamStats.shooting.pa,
+        pctP: teamStats.shooting.pctP,
+        totalMade: teamStats.shooting.rim + teamStats.shooting.sm + teamStats.shooting.pm,
+        totalAttempts: teamStats.shooting.ria + teamStats.shooting.sa + teamStats.shooting.pa,
+        pctFg: teamStats.shooting.pctFgTotal,
+      };
+    } catch {
+      teamShooting = null;
+    }
 
     return {
       role: isStaff ? "staff" : "athlete",
+      internalTeamId,
       internalTeamName: internalTeam?.name ?? "Korfball Bantul",
       todaySession,
       upcomingSessions,
@@ -496,6 +575,117 @@ export class DashboardService {
       teamSummary90d,
       myStats,
       recentMatches,
+      attendanceTrend,
+      teamShooting,
     };
+  }
+
+  /**
+   * Mengambil data tren kehadiran sesi latihan (bisa difilter berdasarkan from & to date).
+   */
+  async getAttendanceTrend(
+    user: AuthenticatedUser,
+    from?: string,
+    to?: string,
+  ): Promise<
+    {
+      sessionId: number;
+      sessionTitle: string;
+      date: string;
+      present: number;
+      late: number;
+      excused: number;
+      absent: number;
+      rate: number;
+    }[]
+  > {
+    let internalTeamId = 1;
+    const [internalTeam] = await this.db
+      .select({ id: teams.id, name: teams.name })
+      .from(teams)
+      .where(and(eq(teams.isInternal, true), isNull(teams.deletedAt)))
+      .limit(1);
+
+    if (internalTeam) {
+      internalTeamId = internalTeam.id;
+    }
+
+    const sessionConditions = [
+      eq(sessions.teamId, internalTeamId),
+      eq(sessions.status, "COMPLETED"),
+      isNull(sessions.deletedAt),
+    ];
+
+    const { fromDate, toDate } = parseWibDateRange(from, to);
+    if (fromDate) {
+      sessionConditions.push(gte(sessions.startsAt, fromDate));
+    }
+    if (toDate) {
+      sessionConditions.push(lte(sessions.startsAt, toDate));
+    }
+
+    const recentCompletedSessions = await this.db
+      .select({
+        id: sessions.id,
+        title: sessions.title,
+        startsAt: sessions.startsAt,
+      })
+      .from(sessions)
+      .where(and(...sessionConditions))
+      .orderBy(desc(sessions.startsAt))
+      .limit(fromDate || toDate ? 20 : 6);
+
+    const sessionIds = recentCompletedSessions.map((s) => s.id);
+    if (sessionIds.length === 0) {
+      return [];
+    }
+
+    const attRows = await this.db
+      .select({
+        sessionId: attendances.sessionId,
+        status: attendances.status,
+        count: count(),
+      })
+      .from(attendances)
+      .where(inArray(attendances.sessionId, sessionIds))
+      .groupBy(attendances.sessionId, attendances.status);
+
+    const map = new Map<number, { present: number; late: number; excused: number; absent: number; total: number }>();
+    for (const id of sessionIds) {
+      map.set(id, { present: 0, late: 0, excused: 0, absent: 0, total: 0 });
+    }
+    for (const row of attRows) {
+      const item = map.get(row.sessionId);
+      if (!item) continue;
+      const c = Number(row.count);
+      item.total += c;
+      if (row.status === "PRESENT") item.present += c;
+      else if (row.status === "LATE") item.late += c;
+      else if (row.status === "EXCUSED") item.excused += c;
+      else if (row.status === "ABSENT") item.absent += c;
+    }
+
+    return recentCompletedSessions
+      .map((s) => {
+        const item = map.get(s.id) ?? { present: 0, late: 0, excused: 0, absent: 0, total: 0 };
+        const start = new Date(s.startsAt);
+        const dateLabel = new Intl.DateTimeFormat("id-ID", {
+          day: "numeric",
+          month: "short",
+          timeZone: "Asia/Jakarta",
+        }).format(start);
+        const attended = item.present + item.late;
+        return {
+          sessionId: s.id,
+          sessionTitle: s.title,
+          date: dateLabel,
+          present: item.present,
+          late: item.late,
+          excused: item.excused,
+          absent: item.absent,
+          rate: item.total > 0 ? Number(((attended / item.total) * 100).toFixed(1)) : 0,
+        };
+      })
+      .reverse();
   }
 }

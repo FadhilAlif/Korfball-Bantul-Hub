@@ -16,17 +16,23 @@ import {
 import Link from "next/link";
 import { AthleteTodaySessionCard } from "@/features/attendance";
 import { useDashboardSummary } from "@/features/statistics";
-import { PageHeader } from "@/shared/components/common";
+import { PageHeader, PwaInstallBanner } from "@/shared/components/common";
 import { Button, buttonVariants } from "@/shared/components/ui";
 import { useAnyPermission, usePermission } from "@/shared/hooks";
-import { ActivityFeed } from "./components/ActivityFeed";
-import { ActiveMatchCard } from "./components/ActiveMatchCard";
-import { QuickActions } from "./components/QuickActions";
-import { RecentMatchesList } from "./components/RecentMatchesList";
-import { RoleDistribution } from "./components/RoleDistribution";
-import { StatCard } from "./components/StatCard";
-import { TodaySessionStaffCard } from "./components/TodaySessionStaffCard";
-import { UpcomingSessionsList } from "./components/UpcomingSessionsList";
+import {
+  ActiveMatchCard,
+  ActivityFeed,
+  AttendanceTrendChart,
+  DashboardLeaderboard,
+  MatchScoringChart,
+  QuickActions,
+  RecentMatchesList,
+  RoleDistribution,
+  ShotDistributionChart,
+  StatCard,
+  TodaySessionStaffCard,
+  UpcomingSessionsList,
+} from "./components";
 import { useDashboardPage } from "./hooks";
 
 export function DashboardPage() {
@@ -63,6 +69,9 @@ export function DashboardPage() {
           )}
         </div>
       </PageHeader>
+
+      {/* PWA Install Prompt Banner */}
+      <PwaInstallBanner />
 
       {/* Sesi Hari Ini Widget */}
       {isStaff ? <TodaySessionStaffCard session={summary?.todaySession ?? null} /> : <AthleteTodaySessionCard />}
@@ -159,6 +168,17 @@ export function DashboardPage() {
             />
           </>
         )}
+      </div>
+
+      {/* Visual Analytics & Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <AttendanceTrendChart data={summary?.attendanceTrend} isLoading={isSummaryLoading} />
+        <ShotDistributionChart data={summary?.teamShooting} isLoading={isSummaryLoading} />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <MatchScoringChart matches={summary?.recentMatches} isLoading={isSummaryLoading} />
+        <DashboardLeaderboard isStaff={isStaff} />
       </div>
 
       {/* Two Column Grid: Sesi Mendatang & Hasil Pertandingan */}

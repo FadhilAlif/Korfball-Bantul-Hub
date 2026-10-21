@@ -158,14 +158,16 @@ athletes
 
 sessions
   id, team_id FK, type (TRAINING, SCRIMMAGE, MATCH, OTHER), title,
-  starts_at, ends_at, venue, late_tolerance_minutes (default 15),
-  checkin_code (6 chars), status (SCHEDULED, COMPLETED, CANCELLED),
+  starts_at, ends_at, venue, latitude, longitude, radius_meters (default 100),
+  late_tolerance_minutes (default 15), checkin_code (6 chars),
+  status (SCHEDULED, COMPLETED, CANCELLED),
   notes, created_by, finalized_at, finalized_by, created_at, updated_at, deleted_at
 
 attendances
   id, session_id FK, athlete_id FK, status (PRESENT, LATE, EXCUSED, ABSENT),
   method (MANUAL, SELF_CHECKIN, EXCUSE_REQUEST, SYSTEM),
-  checked_in_at, note, recorded_by FK, created_at, updated_at
+  checked_in_at, checkin_latitude, checkin_longitude, checkin_distance_meters,
+  note, recorded_by FK, created_at, updated_at
   (unique: session_id, athlete_id)
 
 matches
@@ -328,14 +330,17 @@ Incoming HTTP Request
 │              Pure Function Calculators                 │
 │  - box-score.calculator.ts (Box score, periods, EFF)   │
 │  - on-court.ts (Chronological court presence tracker)  │
-│  - attendance.calculator.ts (Attendance rate BR-13)    │
+│  - attendance.calculator.ts (Rate BR-13 & Haversine)   │
 └────────────────────────────────────────────────────────┘
 ```
 
-## Progressive Web App (PWA) Architecture
+## Progressive Web App (PWA) & GPS Geofence Architecture
 
 - **Manifest**: Generated dynamically via `app/manifest.ts` providing standalone app metadata, theme color (`#3981f6`), and high-res adaptive/maskable icons.
 - **Service Worker**: `public/sw.js` pre-caches application shell and offline fallback (`/offline`), serving static assets cache-first while strictly bypassing API routes (`/api/*`) and SSE real-time streams.
-- **Registration**: Managed via client component `ServiceWorkerRegister.tsx` on root dashboard layout.
+- **Registration & Install Prompt**: Managed via client component `ServiceWorkerRegister.tsx` on root layout, complemented by `PwaInstallBanner.tsx` which captures `beforeinstallprompt` (Android/Chrome) for 1-tap installation and provides iOS Safari *Add to Home Screen* instructions.
+- **Hybrid Attendance Geofencing**:
+  - **Session Venue Picker**: Uses `Leaflet` + `OpenStreetMap` (`SessionLocationPicker.tsx`) with visual radius circle overlay, preset venues (e.g., GOR Stadion Sultan Agung Bantul), and browser geolocation capture.
+  - **Server-Side Haversine Validation**: Athlete GPS check-ins (`POST /api/attendance/check-in`) send `{ sessionId, latitude, longitude }`. Backend `attendance.calculator.ts` computes exact great-circle distance (`calculateHaversineDistanceMeters`) against session coordinates and enforces `distanceMeters <= radiusMeters` (BR-34), storing `checkin_distance_meters` for official audit while retaining the 6-character `checkin_code` as an indoor fallback.
 - **Outbox Storage**: IndexedDB storage layer isolated per browser context, preventing data loss when venue network connectivity drops.
 

@@ -23,6 +23,9 @@ const envSchema = z.object({
   JWT_ACCESS_EXPIRES_IN: z.string().default("15m"),
   JWT_REFRESH_EXPIRES_IN: z.string().default("7d"),
 
+  COOKIE_SAME_SITE: z.enum(["lax", "strict", "none"]).optional(),
+  COOKIE_DOMAIN: z.string().optional(),
+
   RESEND_API_KEY: z.string().optional().default(""),
   RESEND_FROM: z.string().default("onboarding@resend.dev"),
   EMAIL_FROM: z.string().optional(),

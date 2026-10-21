@@ -9,17 +9,21 @@ export interface ModalProps {
   onClose: () => void;
   title: string;
   children: React.ReactNode;
-  maxWidth?: "sm" | "md" | "lg" | "xl";
+  maxWidth?: "sm" | "md" | "lg" | "xl" | "2xl" | "3xl";
+  className?: string;
+  bodyClassName?: string;
 }
 
 const maxWidthClass = {
   sm: "sm:max-w-sm",
   md: "sm:max-w-md",
   lg: "sm:max-w-lg",
-  xl: "sm:max-w-xl",
+  xl: "sm:max-w-2xl",
+  "2xl": "sm:max-w-4xl",
+  "3xl": "sm:max-w-5xl",
 };
 
-export function Modal({ isOpen, onClose, title, children, maxWidth = "md" }: ModalProps) {
+export function Modal({ isOpen, onClose, title, children, maxWidth = "md", className, bodyClassName }: ModalProps) {
   return (
     <Dialog
       open={isOpen}
@@ -27,11 +31,15 @@ export function Modal({ isOpen, onClose, title, children, maxWidth = "md" }: Mod
         if (!open) onClose();
       }}
     >
-      <DialogContent className={cn(maxWidthClass[maxWidth])}>
-        <DialogHeader>
+      <DialogContent
+        className={cn(maxWidthClass[maxWidth], "max-h-[92vh] flex flex-col p-0 gap-0 overflow-hidden", className)}
+      >
+        <DialogHeader className="px-5 sm:px-6 py-3.5 sm:py-4 border-b border-border shrink-0 pr-12 text-left">
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
-        {children}
+        <div className={cn("px-5 sm:px-6 py-4 overflow-y-auto overscroll-contain flex-1", bodyClassName)}>
+          {children}
+        </div>
       </DialogContent>
     </Dialog>
   );

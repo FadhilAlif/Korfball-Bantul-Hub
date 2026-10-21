@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { memo, type ReactNode, useMemo } from "react";
 import { PermissionGate } from "@/shared/components/guard";
 import { Dropdown } from "@/shared/components/ui";
+import { isNavItemActive } from "./isNavItemActive";
 import { navGroupChildVariants, navGroupTriggerVariants } from "./NavGroup.variants";
 import type { NavItemDef } from "./Sidebar.types";
 import { useNavGroup } from "./useNavGroup";
@@ -25,7 +26,7 @@ export const NavGroup = memo(function NavGroup({ label, icon, items, collapsed =
   const childList = useMemo(
     () =>
       items.map((item) => {
-        const active = pathname.startsWith(item.href);
+        const active = isNavItemActive(item.href, pathname);
         const className = navGroupChildVariants({ active });
 
         if (item.permission !== null) {

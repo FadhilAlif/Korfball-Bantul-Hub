@@ -9,8 +9,8 @@ import { Button, Select } from "@/shared/components/ui";
 import type { AthleteFilterState } from "../types";
 
 const SEX_OPTIONS = [
-  { value: "MALE", label: "Putra (L)" },
-  { value: "FEMALE", label: "Putri (P)" },
+  { value: "MALE", label: "Laki - Laki" },
+  { value: "FEMALE", label: "Perempuan" },
 ];
 
 const STATUS_OPTIONS = [

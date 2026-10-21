@@ -21,6 +21,7 @@ import { RequirePermissions } from "../../common/decorators/permissions.decorato
 import { JwtAuthGuard } from "../../common/guards/jwt-auth.guard.js";
 import { PermissionsGuard } from "../../common/guards/permissions.guard.js";
 import { ZodValidationPipe } from "../../common/pipes/zod-validation.pipe.js";
+import type { AuthenticatedUser } from "../../common/types/authenticated-user.type.js";
 import {
   type CreateSessionInput,
   type GenerateRoutineInput,
@@ -42,14 +43,24 @@ export class SessionsController {
   @Get()
   @RequirePermissions("sessions:read")
   @UsePipes(new ZodValidationPipe(listSessionsQuerySchema, "query"))
-  async listSessions(@Query() query: ListSessionsQuery) {
-    return this.sessionsService.listSessions(query);
+  async listSessions(@Query() query: ListSessionsQuery, @CurrentUser() user?: AuthenticatedUser) {
+    const canViewCheckinCode = Boolean(
+      user?.roles?.includes("admin") ||
+        user?.permissions?.includes("attendance:record") ||
+        user?.permissions?.includes("sessions:update"),
+    );
+    return this.sessionsService.listSessions(query, canViewCheckinCode);
   }
 
   @Get(":id")
   @RequirePermissions("sessions:read")
-  async getSession(@Param("id", ParseIntPipe) id: number) {
-    const session = await this.sessionsService.getSession(id);
+  async getSession(@Param("id", ParseIntPipe) id: number, @CurrentUser() user?: AuthenticatedUser) {
+    const canViewCheckinCode = Boolean(
+      user?.roles?.includes("admin") ||
+        user?.permissions?.includes("attendance:record") ||
+        user?.permissions?.includes("sessions:update"),
+    );
+    const session = await this.sessionsService.getSession(id, canViewCheckinCode);
     return { data: session };
   }
 

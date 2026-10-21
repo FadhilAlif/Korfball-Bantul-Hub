@@ -9,7 +9,8 @@ import { getErrorMessage } from "@/shared/lib/api-error";
 import { toast } from "@/shared/lib/toast";
 import { useCreateSession, useUpdateSession } from "../hooks";
 import { type SessionFormInput, type SessionFormOutput, sessionFormSchema } from "../schemas/session.schema";
-import type { SessionItem, SessionType } from "../types";
+import { DEFAULT_VENUE_PRESET, type SessionItem, type SessionType } from "../types";
+import { SessionLocationPicker } from "./SessionLocationPicker";
 
 const SESSION_TYPE_OPTIONS = [
   { value: "TRAINING", label: "Latihan Rutin" },
@@ -83,13 +84,20 @@ export function SessionModal({ isOpen, onClose, session }: SessionModalProps) {
       date: todayWib,
       startTime: "18:00",
       endTime: "20:00",
-      venue: "GOR Stadion Sultan Agung Bantul",
+      venue: DEFAULT_VENUE_PRESET.venue,
+      latitude: DEFAULT_VENUE_PRESET.latitude,
+      longitude: DEFAULT_VENUE_PRESET.longitude,
+      radiusMeters: DEFAULT_VENUE_PRESET.radiusMeters,
       lateToleranceMinutes: 15,
       notes: "",
     },
   });
 
   const selectedType = watch("type") ?? "TRAINING";
+  const watchedVenue = watch("venue") ?? "";
+  const watchedLat = watch("latitude") ?? null;
+  const watchedLng = watch("longitude") ?? null;
+  const watchedRadius = Number(watch("radiusMeters") ?? DEFAULT_VENUE_PRESET.radiusMeters);
 
   useEffect(() => {
     if (isOpen) {
@@ -103,6 +111,9 @@ export function SessionModal({ isOpen, onClose, session }: SessionModalProps) {
           startTime: start.time,
           endTime: end.time,
           venue: session.venue ?? "",
+          latitude: session.latitude ?? null,
+          longitude: session.longitude ?? null,
+          radiusMeters: session.radiusMeters ?? DEFAULT_VENUE_PRESET.radiusMeters,
           lateToleranceMinutes: session.lateToleranceMinutes,
           notes: session.notes ?? "",
         });
@@ -113,7 +124,10 @@ export function SessionModal({ isOpen, onClose, session }: SessionModalProps) {
           date: getNextDayOfWeekWib(2),
           startTime: "18:00",
           endTime: "20:00",
-          venue: "GOR Stadion Sultan Agung Bantul",
+          venue: DEFAULT_VENUE_PRESET.venue,
+          latitude: DEFAULT_VENUE_PRESET.latitude,
+          longitude: DEFAULT_VENUE_PRESET.longitude,
+          radiusMeters: DEFAULT_VENUE_PRESET.radiusMeters,
           lateToleranceMinutes: 15,
           notes: "",
         });
@@ -127,7 +141,10 @@ export function SessionModal({ isOpen, onClose, session }: SessionModalProps) {
     setValue("date", getNextDayOfWeekWib(2), { shouldValidate: true });
     setValue("startTime", "18:00", { shouldValidate: true });
     setValue("endTime", "20:00", { shouldValidate: true });
-    setValue("venue", "GOR Stadion Sultan Agung Bantul");
+    setValue("venue", DEFAULT_VENUE_PRESET.venue);
+    setValue("latitude", DEFAULT_VENUE_PRESET.latitude);
+    setValue("longitude", DEFAULT_VENUE_PRESET.longitude);
+    setValue("radiusMeters", DEFAULT_VENUE_PRESET.radiusMeters);
     setValue("lateToleranceMinutes", 15);
   };
 
@@ -137,7 +154,10 @@ export function SessionModal({ isOpen, onClose, session }: SessionModalProps) {
     setValue("date", getNextDayOfWeekWib(6), { shouldValidate: true });
     setValue("startTime", "19:00", { shouldValidate: true });
     setValue("endTime", "21:00", { shouldValidate: true });
-    setValue("venue", "GOR Stadion Sultan Agung Bantul");
+    setValue("venue", DEFAULT_VENUE_PRESET.venue);
+    setValue("latitude", DEFAULT_VENUE_PRESET.latitude);
+    setValue("longitude", DEFAULT_VENUE_PRESET.longitude);
+    setValue("radiusMeters", DEFAULT_VENUE_PRESET.radiusMeters);
     setValue("lateToleranceMinutes", 15);
   };
 
@@ -148,6 +168,9 @@ export function SessionModal({ isOpen, onClose, session }: SessionModalProps) {
       startsAt: `${data.date}T${data.startTime}:00+07:00`,
       endsAt: `${data.date}T${data.endTime}:00+07:00`,
       venue: data.venue,
+      latitude: data.latitude ?? null,
+      longitude: data.longitude ?? null,
+      radiusMeters: data.radiusMeters,
       lateToleranceMinutes: data.lateToleranceMinutes,
       notes: data.notes,
     };
@@ -177,113 +200,151 @@ export function SessionModal({ isOpen, onClose, session }: SessionModalProps) {
   const isSubmitting = isEditing ? updateSession.isPending : createSession.isPending;
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={isEditing ? "Edit Sesi Latihan" : "Buat Sesi Baru"} maxWidth="lg">
-      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-3.5 pt-1">
-        {!isEditing && (
-          <div className="flex flex-col gap-1.5 p-2.5 rounded-lg border border-border bg-muted/40">
-            <span className="text-[11px] font-semibold uppercase tracking-[0.04em] text-muted-foreground flex items-center gap-1">
-              <Sparkles size={12} className="text-primary" />
-              Preset Jadwal Rutin Korfball Bantul
-            </span>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <Button type="button" variant="outline" size="sm" onClick={applyPresetTuesday} className="justify-start">
-                Selasa (18.00 – 20.00 WIB)
-              </Button>
-              <Button type="button" variant="outline" size="sm" onClick={applyPresetSaturday} className="justify-start">
-                Sabtu (19.00 – 21.00 WIB)
-              </Button>
-            </div>
-          </div>
-        )}
-
+    <Modal isOpen={isOpen} onClose={onClose} title={isEditing ? "Edit Sesi Latihan" : "Buat Sesi Baru"} maxWidth="2xl">
+      <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4 pt-1">
         {errors.root && <Alert message={errors.root.message ?? "Terjadi kesalahan"} />}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-          <FormField label="Jenis Sesi" required error={errors.type?.message}>
-            <Select
-              value={selectedType}
-              onChange={(v) => setValue("type", v as SessionType, { shouldValidate: true })}
-              options={SESSION_TYPE_OPTIONS}
-            />
-          </FormField>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+          {/* Kolom Kiri: Informasi Sesi & Waktu */}
+          <div className="lg:col-span-6 flex flex-col gap-3.5">
+            {!isEditing && (
+              <div className="flex flex-col gap-1.5 p-2.5 rounded-lg border border-border bg-muted/40">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.04em] text-muted-foreground flex items-center gap-1">
+                  <Sparkles size={12} className="text-primary" />
+                  Preset Jadwal Rutin Korfball Bantul
+                </span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={applyPresetTuesday}
+                    className="justify-start text-xs h-8 font-normal"
+                  >
+                    Selasa (18.00 – 20.00 WIB)
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={applyPresetSaturday}
+                    className="justify-start text-xs h-8 font-normal"
+                  >
+                    Sabtu (19.00 – 21.00 WIB)
+                  </Button>
+                </div>
+              </div>
+            )}
 
-          <FormField
-            label="Toleransi Terlambat (Menit)"
-            htmlFor="session-tolerance"
-            error={errors.lateToleranceMinutes?.message}
-          >
-            <Input
-              id="session-tolerance"
-              type="number"
-              min={0}
-              max={120}
-              {...register("lateToleranceMinutes")}
-              error={errors.lateToleranceMinutes?.message}
+            <FormField label="Judul Sesi" htmlFor="session-title" required error={errors.title?.message}>
+              <Input
+                id="session-title"
+                {...register("title")}
+                placeholder="Contoh: Latihan Rutin Selasa"
+                error={errors.title?.message}
+              />
+            </FormField>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <FormField label="Jenis Sesi" required error={errors.type?.message}>
+                <Select
+                  value={selectedType}
+                  onChange={(v) => setValue("type", v as SessionType, { shouldValidate: true })}
+                  options={SESSION_TYPE_OPTIONS}
+                />
+              </FormField>
+
+              <FormField
+                label="Toleransi Terlambat"
+                htmlFor="session-tolerance"
+                error={errors.lateToleranceMinutes?.message}
+              >
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="session-tolerance"
+                    type="number"
+                    min={0}
+                    max={120}
+                    {...register("lateToleranceMinutes")}
+                    error={errors.lateToleranceMinutes?.message}
+                  />
+                  <span className="text-xs text-muted-foreground shrink-0">Menit</span>
+                </div>
+              </FormField>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <FormField label="Tanggal" htmlFor="session-date" required error={errors.date?.message}>
+                <Input
+                  id="session-date"
+                  type="date"
+                  {...register("date")}
+                  iconLeft={<Calendar size={14} />}
+                  error={errors.date?.message}
+                />
+              </FormField>
+
+              <FormField label="Mulai (WIB)" htmlFor="session-start" required error={errors.startTime?.message}>
+                <Input
+                  id="session-start"
+                  type="time"
+                  {...register("startTime")}
+                  iconLeft={<Clock size={14} />}
+                  error={errors.startTime?.message}
+                />
+              </FormField>
+
+              <FormField label="Selesai (WIB)" htmlFor="session-end" required error={errors.endTime?.message}>
+                <Input
+                  id="session-end"
+                  type="time"
+                  {...register("endTime")}
+                  iconLeft={<Clock size={14} />}
+                  error={errors.endTime?.message}
+                />
+              </FormField>
+            </div>
+
+            <FormField label="Catatan (Opsional)" htmlFor="session-notes" error={errors.notes?.message}>
+              <Input
+                id="session-notes"
+                {...register("notes")}
+                placeholder="Materi latihan, fokus taktik, perlengkapan"
+                error={errors.notes?.message}
+              />
+            </FormField>
+          </div>
+
+          {/* Kolom Kanan: Lokasi & Geofence GPS */}
+          <div className="lg:col-span-6 flex flex-col gap-3.5">
+            <FormField label="Nama Lokasi / Venue" htmlFor="session-venue" error={errors.venue?.message}>
+              <Input
+                id="session-venue"
+                {...register("venue")}
+                placeholder="WIFA SPORT CENTER"
+                iconLeft={<MapPin size={15} />}
+                error={errors.venue?.message}
+              />
+            </FormField>
+
+            <SessionLocationPicker
+              venue={watchedVenue}
+              latitude={watchedLat}
+              longitude={watchedLng}
+              radiusMeters={watchedRadius}
+              onChangeVenue={(v) => setValue("venue", v, { shouldValidate: true })}
+              onChangeCoordinates={({ latitude, longitude }) => {
+                setValue("latitude", latitude, { shouldValidate: true });
+                setValue("longitude", longitude, { shouldValidate: true });
+              }}
+              onChangeRadius={(r) => setValue("radiusMeters", r, { shouldValidate: true })}
+              errorMessage={errors.latitude?.message || errors.longitude?.message || errors.radiusMeters?.message}
             />
-          </FormField>
+          </div>
         </div>
 
-        <FormField label="Judul Sesi" htmlFor="session-title" required error={errors.title?.message}>
-          <Input
-            id="session-title"
-            {...register("title")}
-            placeholder="Contoh: Latihan Rutin Selasa"
-            error={errors.title?.message}
-          />
-        </FormField>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
-          <FormField label="Tanggal" htmlFor="session-date" required error={errors.date?.message}>
-            <Input
-              id="session-date"
-              type="date"
-              {...register("date")}
-              iconLeft={<Calendar size={14} />}
-              error={errors.date?.message}
-            />
-          </FormField>
-
-          <FormField label="Jam Mulai (WIB)" htmlFor="session-start" required error={errors.startTime?.message}>
-            <Input
-              id="session-start"
-              type="time"
-              {...register("startTime")}
-              iconLeft={<Clock size={14} />}
-              error={errors.startTime?.message}
-            />
-          </FormField>
-
-          <FormField label="Jam Selesai (WIB)" htmlFor="session-end" required error={errors.endTime?.message}>
-            <Input
-              id="session-end"
-              type="time"
-              {...register("endTime")}
-              iconLeft={<Clock size={14} />}
-              error={errors.endTime?.message}
-            />
-          </FormField>
-        </div>
-
-        <FormField label="Lokasi / Venue" htmlFor="session-venue" error={errors.venue?.message}>
-          <Input
-            id="session-venue"
-            {...register("venue")}
-            placeholder="GOR Stadion Sultan Agung Bantul"
-            iconLeft={<MapPin size={15} />}
-            error={errors.venue?.message}
-          />
-        </FormField>
-
-        <FormField label="Catatan (Opsional)" htmlFor="session-notes" error={errors.notes?.message}>
-          <Input
-            id="session-notes"
-            {...register("notes")}
-            placeholder="Materi latihan, fokus taktik, atau perlengkapan yang dibawa"
-            error={errors.notes?.message}
-          />
-        </FormField>
-
-        <div className="flex justify-end gap-2 pt-2">
+        {/* Sticky Action Footer */}
+        <div className="sticky bottom-0 -mx-5 sm:-mx-6 -mb-4 px-5 sm:px-6 py-3 bg-card/95 backdrop-blur-xs border-t border-border flex items-center justify-end gap-2.5 z-10 mt-2">
           <Button type="button" variant="secondary" onClick={onClose}>
             Batal
           </Button>

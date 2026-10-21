@@ -1,5 +1,7 @@
 import { apiClient } from "@/shared/lib/api-client";
 import type {
+  AttendanceTrendItem,
+  AttendanceTrendQuery,
   DashboardSummary,
   PlayerLeaderboardItem,
   PlayerLeaderboardQuery,
@@ -54,5 +56,12 @@ export async function getTeamStats(query: TeamStatsQuery = {}): Promise<TeamStat
 
 export async function getDashboardSummary(): Promise<DashboardSummary> {
   const response = await apiClient.get<{ data: DashboardSummary }>("/dashboard/summary");
+  return response.data.data;
+}
+
+export async function getAttendanceTrend(query: AttendanceTrendQuery = {}): Promise<AttendanceTrendItem[]> {
+  const response = await apiClient.get<{ data: AttendanceTrendItem[] }>("/dashboard/attendance-trend", {
+    params: query,
+  });
   return response.data.data;
 }

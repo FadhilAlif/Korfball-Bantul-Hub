@@ -52,7 +52,7 @@ export function PlayerProfilePage({ data, backHref = "/stats", isSelf = false }:
                     : "border-pink-500/40 text-pink-600 bg-pink-50 dark:bg-pink-950/30"
                 }`}
               >
-                {athlete.sex === "MALE" ? "Laki-laki" : "Perempuan"}
+                {athlete.sex === "MALE" ? "Laki - Laki" : "Perempuan"}
               </Badge>
               {isSelf && (
                 <Badge variant="default" className="text-xs">

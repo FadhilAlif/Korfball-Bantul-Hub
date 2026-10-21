@@ -48,8 +48,12 @@ function StatusBadge({ status }: { status: AttendanceStatus }) {
   );
 }
 
-function MethodLabel({ method }: { method: AttendanceMethod }) {
-  if (method === "SELF_CHECKIN") return "Self Check-in";
+function MethodLabel({ method, distanceMeters }: { method: AttendanceMethod; distanceMeters?: number | null }) {
+  if (method === "SELF_CHECKIN") {
+    return distanceMeters !== null && distanceMeters !== undefined
+      ? `Self Check-in · GPS (${distanceMeters}m)`
+      : "Self Check-in · Kode";
+  }
   if (method === "EXCUSE_REQUEST") return "Izin Mandiri";
   return "Dicatat Official";
 }
@@ -79,11 +83,11 @@ export function MyAttendancePage() {
     <div className="flex flex-col gap-5">
       <PageHeader
         title="Kehadiran Saya"
-        description="Lakukan check-in mandiri menggunakan kode 6 karakter, ajukan izin sebelum sesi dimulai, dan pantau riwayat kehadiran Anda."
+        description="Lakukan check-in mandiri menggunakan lokasi GPS di WIFA Sport Center atau kode 6 karakter, ajukan izin sebelum sesi dimulai, dan pantau riwayat kehadiran Anda."
       >
         <Button type="button" size="sm" className="gap-1.5" onClick={() => setCheckinOpen(true)}>
           <KeyRound size={14} />
-          Check-In Kode 6 Digit
+          Check-In Presensi
         </Button>
       </PageHeader>
 
@@ -247,7 +251,7 @@ export function MyAttendancePage() {
                   <StatusBadge status={item.status} />
                 </TableCell>
                 <TableCell className="text-xs text-muted-foreground">
-                  <MethodLabel method={item.method} />
+                  <MethodLabel method={item.method} distanceMeters={item.checkinDistanceMeters} />
                 </TableCell>
                 <TableCell className="text-xs text-muted-foreground">{item.note ?? "—"}</TableCell>
               </TableRow>
@@ -256,7 +260,11 @@ export function MyAttendancePage() {
         </table>
       </TableShell>
 
-      <SelfCheckinModal isOpen={isCheckinOpen} onClose={() => setCheckinOpen(false)} />
+      <SelfCheckinModal
+        isOpen={isCheckinOpen}
+        onClose={() => setCheckinOpen(false)}
+        session={scheduledData?.data?.[0] ?? null}
+      />
 
       {excuseSession && (
         <ExcuseRequestModal

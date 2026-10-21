@@ -1,4 +1,4 @@
-export type MatchStatus = "SCHEDULED" | "LIVE" | "PAUSED" | "FINISHED" | "CANCELLED";
+export type MatchStatus = "SCHEDULED" | "LIVE" | "FINISHED" | "CANCELLED";
 export type MatchType = "OFFICIAL" | "FRIENDLY" | "SCRIMMAGE";
 export type MatchFormat = "K8" | "K4";
 export type MatchSide = "HOME" | "AWAY";

@@ -11,7 +11,7 @@ describe("athleteFormSchema", () => {
       jerseyNumber: "7",
       birthDate: "2003-05-14",
       status: "ACTIVE",
-      notes: "Starter putri",
+      notes: "Starter perempuan",
     });
 
     expect(res.success).toBe(true);

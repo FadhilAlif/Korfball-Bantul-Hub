@@ -233,4 +233,61 @@ describe("DashboardService - getDashboardSummary", () => {
       avgEff: 3.5,
     });
   });
+
+  it("resolves athlete from DB when user.athlete is undefined on AuthenticatedUser", async () => {
+    const rawUserWithoutAthlete: AuthenticatedUser = {
+      id: 5,
+      email: "athlete@korfballbantul.id",
+      roles: ["athlete"],
+      permissions: ["attendance:self", "stats:read_own"],
+      // Note: athlete is undefined here as is normal from stateless JWT payload
+    };
+
+    const mockLinkedAthlete = [{ id: 12 }];
+    const mockInternalTeam = [{ id: 1, name: "Korfball Bantul" }];
+    const mockAllTeams = [{ id: 1, name: "Korfball Bantul" }];
+    const mockTodaySession: any[] = [];
+    const mockUpcomingSessions: any[] = [];
+    const mockLiveMatch: any[] = [];
+    const mockClosestScheduled: any[] = [];
+    const mockAttList = [{ status: "PRESENT" }];
+    const mockRecentMatches: any[] = [];
+
+    const mockDb = createMockDb({
+      selectResponses: [
+        mockLinkedAthlete,
+        mockInternalTeam,
+        mockAllTeams,
+        mockTodaySession,
+        mockUpcomingSessions,
+        mockLiveMatch,
+        mockClosestScheduled,
+        mockAttList,
+        mockRecentMatches,
+      ],
+    });
+
+    const mockStatsService = {
+      getPlayerProfile: vi.fn().mockResolvedValue({
+        summary: {
+          gp: 2,
+          pts: 6,
+          pctFgTotal: 60.0,
+          epg: 4.0,
+        },
+      }),
+    };
+
+    const service = new DashboardService(mockDb as any, mockStatsService as any);
+    const summary = await service.getDashboardSummary(rawUserWithoutAthlete);
+
+    expect(summary.role).toBe("athlete");
+    expect(summary.attendanceRate30d).toBe(100);
+    expect(summary.myStats).toEqual({
+      gp: 2,
+      pts: 6,
+      fgPct: 60.0,
+      avgEff: 4.0,
+    });
+  });
 });

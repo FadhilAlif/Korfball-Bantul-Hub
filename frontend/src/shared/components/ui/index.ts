@@ -96,3 +96,11 @@ export {
 } from "./table";
 export { Tabs, TabsList, TabsTrigger, TabsContent } from "./tabs";
 export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "./tooltip";
+export type { ChartConfig } from "./chart";
+export {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
+} from "./chart";
