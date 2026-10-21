@@ -30,8 +30,30 @@ async function bootstrap() {
     }),
   );
 
+  const allowedOrigins = env.FRONTEND_URL.split(",").map((s) => s.trim());
+
   app.enableCors({
-    origin: env.FRONTEND_URL,
+    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+      if (!origin) return callback(null, true);
+
+      const isAllowed =
+        allowedOrigins.includes("*") ||
+        allowedOrigins.includes(origin) ||
+        allowedOrigins.some((pattern) => {
+          if (pattern.includes("*")) {
+            const regex = new RegExp(`^${pattern.replace(/\./g, "\\.").replace(/\*/g, ".*")}$`);
+            return regex.test(origin);
+          }
+          return false;
+        }) ||
+        (env.NODE_ENV !== "production" && origin.includes("localhost"));
+
+      if (isAllowed) {
+        callback(null, true);
+      } else {
+        callback(new Error(`Origin ${origin} not allowed by CORS`));
+      }
+    },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
