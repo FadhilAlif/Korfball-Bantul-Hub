@@ -907,7 +907,7 @@ List training and match sessions with date and status filters.
 - **Permission:** `sessions:read`
 
 #### POST /api/sessions
-Create a training or match session. Auto-generates a 6-character alphanumeric check-in code.
+Create a training or match session. Auto-generates a 6-character alphanumeric check-in code and optionally stores GPS geofence coordinates (`latitude`, `longitude`) and `radiusMeters` (default `100`).
 - **Permission:** `sessions:create`
 - **Request:**
 ```json
@@ -917,15 +917,18 @@ Create a training or match session. Auto-generates a 6-character alphanumeric ch
   "title": "Latihan Rutin Selasa",
   "startsAt": "2026-10-20T18:00:00+07:00",
   "endsAt": "2026-10-20T20:00:00+07:00",
-  "venue": "GOR Sasana Krida Bantul",
+  "venue": "GOR Stadion Sultan Agung Bantul",
+  "latitude": -7.8753,
+  "longitude": 110.3519,
+  "radiusMeters": 100,
   "lateToleranceMinutes": 15
 }
 ```
 
 #### POST /api/sessions/generate-routine
-Batch generate routine sessions for Tuesday (18:00–20:00 WIB) and Saturday (19:00–21:00 WIB) within a date range.
+Batch generate routine sessions for Tuesday (18:00–20:00 WIB) and Saturday (19:00–21:00 WIB) within a date range (including default or custom GPS venue coordinates & radius).
 - **Permission:** `sessions:create`
-- **Request:** `{ "startDate": "2026-11-01", "endDate": "2026-11-30" }`
+- **Request:** `{ "startDate": "2026-11-01", "weeks": 4, "venue": "GOR Stadion Sultan Agung Bantul", "latitude": -7.8753, "longitude": 110.3519, "radiusMeters": 100 }`
 
 #### POST /api/sessions/:id/checkin-code
 Regenerate a new 6-character check-in code for an active session.
@@ -958,9 +961,37 @@ Finalize attendance sheet for a session. Automatically marks any active roster a
 - **Permission:** `attendance:record`
 
 #### POST /api/attendance/check-in
-Athlete self check-in using 6-character session code. Automatically verifies time window (startsAt - 30m to endsAt) and determines `PRESENT` vs `LATE` based on `lateToleranceMinutes`. Rate-limited to 5 incorrect attempts per 10 minutes.
+Athlete hybrid self check-in: supports either **GPS Geofence Location** (`{ sessionId, latitude, longitude }`) or **6-Character Session Code Fallback** (`{ code }`).
+Automatically verifies time window (`startsAt - 30m` to `endsAt`), determines `PRESENT` vs `LATE` based on server time and `lateToleranceMinutes` (BR-10), and for GPS mode calculates great-circle distance via Haversine formula to enforce `distanceMeters <= session.radiusMeters` (BR-34). Code mode is rate-limited to 5 incorrect attempts per 10 minutes (BR-15).
 - **Permission:** `attendance:self`
-- **Request:** `{ "code": "KB8821" }`
+- **Request (Mode 1 — GPS Geofence):**
+```json
+{
+  "sessionId": 12,
+  "latitude": -7.87515,
+  "longitude": 110.35201
+}
+```
+- **Request (Mode 2 — 6-Char Code Fallback):**
+```json
+{
+  "code": "KB8821"
+}
+```
+- **Response 200:**
+```json
+{
+  "success": true,
+  "message": "Check-in berhasil (Hadir Tepat Waktu).",
+  "data": {
+    "sessionTitle": "Latihan Rutin Selasa",
+    "status": "PRESENT",
+    "checkedInAt": "2026-10-20T10:52:00.000Z",
+    "distanceMeters": 24,
+    "message": "Check-in berhasil (Hadir Tepat Waktu)."
+  }
+}
+```
 
 #### POST /api/sessions/:id/excuse
 Athlete submits an absence excuse with reason.

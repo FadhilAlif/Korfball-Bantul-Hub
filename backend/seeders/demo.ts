@@ -241,20 +241,27 @@ export async function seedDemo(): Promise<void> {
   console.log(`✓ Seeded ${OPPONENT_TEAMS.length} opponent teams (Kab. Klaten, Tangerang Selatan)`);
 
   // 5. Seed routine training sessions (Selasa 18:00–20:00 WIB & Sabtu 19:00–21:00 WIB)
+  const WIFA_SPORT_CENTER = {
+    venue: "WIFA SPORT CENTER",
+    latitude: -7.900181586573576,
+    longitude: 110.32812616243315,
+    radiusMeters: 100,
+  };
+
   const routineSessions = [
     {
       title: "Latihan Rutin Selasa",
       startsAt: new Date("2026-10-20T18:00:00+07:00"),
       endsAt: new Date("2026-10-20T20:00:00+07:00"),
       checkinCode: "SEL18A",
-      venue: "GOR Stadion Sultan Agung Bantul",
+      ...WIFA_SPORT_CENTER,
     },
     {
       title: "Latihan Rutin Sabtu",
       startsAt: new Date("2026-10-24T19:00:00+07:00"),
       endsAt: new Date("2026-10-24T21:00:00+07:00"),
       checkinCode: "SAB19B",
-      venue: "GOR Stadion Sultan Agung Bantul",
+      ...WIFA_SPORT_CENTER,
     },
   ];
 
@@ -279,11 +286,24 @@ export async function seedDemo(): Promise<void> {
         startsAt: s.startsAt,
         endsAt: s.endsAt,
         venue: s.venue,
+        latitude: s.latitude,
+        longitude: s.longitude,
+        radiusMeters: s.radiusMeters,
         lateToleranceMinutes: 15,
         checkinCode: s.checkinCode,
         status: "SCHEDULED",
         createdBy: coachUserId,
       });
+    } else {
+      await db
+        .update(sessions)
+        .set({
+          venue: s.venue,
+          latitude: s.latitude,
+          longitude: s.longitude,
+          radiusMeters: s.radiusMeters,
+        })
+        .where(eq(sessions.id, existingSession.id));
     }
   }
   console.log("✓ Seeded routine training sessions (Selasa 18:00–20:00 WIB & Sabtu 19:00–21:00 WIB)");

@@ -12,6 +12,8 @@ import {
   type GenerateRoutineFormOutput,
   generateRoutineFormSchema,
 } from "../schemas/session.schema";
+import { DEFAULT_VENUE_PRESET } from "../types";
+import { SessionLocationPicker } from "./SessionLocationPicker";
 
 const WEEKS_OPTIONS = [
   { value: "1", label: "1 Minggu ke depan (2 sesi)" },
@@ -39,12 +41,19 @@ export function GenerateRoutineModal({ isOpen, onClose }: GenerateRoutineModalPr
     resolver: zodResolver(generateRoutineFormSchema),
     defaultValues: {
       weeks: 4,
-      venue: "GOR Stadion Sultan Agung Bantul",
+      venue: DEFAULT_VENUE_PRESET.venue,
+      latitude: DEFAULT_VENUE_PRESET.latitude,
+      longitude: DEFAULT_VENUE_PRESET.longitude,
+      radiusMeters: DEFAULT_VENUE_PRESET.radiusMeters,
       lateToleranceMinutes: 15,
     },
   });
 
   const weeksValue = String(watch("weeks") ?? 4);
+  const watchedVenue = watch("venue") ?? DEFAULT_VENUE_PRESET.venue;
+  const watchedLat = watch("latitude") ?? null;
+  const watchedLng = watch("longitude") ?? null;
+  const watchedRadius = Number(watch("radiusMeters") ?? DEFAULT_VENUE_PRESET.radiusMeters);
 
   const onSubmit = (data: GenerateRoutineFormOutput) => {
     generateRoutine.mutate(data, {
@@ -91,6 +100,20 @@ export function GenerateRoutineModal({ isOpen, onClose }: GenerateRoutineModalPr
             error={errors.venue?.message}
           />
         </FormField>
+
+        <SessionLocationPicker
+          venue={watchedVenue}
+          latitude={watchedLat}
+          longitude={watchedLng}
+          radiusMeters={watchedRadius}
+          onChangeVenue={(v) => setValue("venue", v, { shouldValidate: true })}
+          onChangeCoordinates={({ latitude, longitude }) => {
+            setValue("latitude", latitude, { shouldValidate: true });
+            setValue("longitude", longitude, { shouldValidate: true });
+          }}
+          onChangeRadius={(r) => setValue("radiusMeters", r, { shouldValidate: true })}
+          errorMessage={errors.latitude?.message || errors.longitude?.message || errors.radiusMeters?.message}
+        />
 
         <FormField
           label="Toleransi Terlambat (Menit)"

@@ -15,6 +15,13 @@
       "when": 1792212505317,
       "tag": "0001_opposite_nekra",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792588609564,
+      "tag": "0002_purple_triathlon",
+      "breakpoints": true
     }
   ]
 }

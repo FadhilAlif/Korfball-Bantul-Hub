@@ -16,7 +16,7 @@ import {
 import Link from "next/link";
 import { AthleteTodaySessionCard } from "@/features/attendance";
 import { useDashboardSummary } from "@/features/statistics";
-import { PageHeader } from "@/shared/components/common";
+import { PageHeader, PwaInstallBanner } from "@/shared/components/common";
 import { Button, buttonVariants } from "@/shared/components/ui";
 import { useAnyPermission, usePermission } from "@/shared/hooks";
 import {
@@ -69,6 +69,9 @@ export function DashboardPage() {
           )}
         </div>
       </PageHeader>
+
+      {/* PWA Install Prompt Banner */}
+      <PwaInstallBanner />
 
       {/* Sesi Hari Ini Widget */}
       {isStaff ? <TodaySessionStaffCard session={summary?.todaySession ?? null} /> : <AthleteTodaySessionCard />}

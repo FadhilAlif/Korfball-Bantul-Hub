@@ -55,26 +55,31 @@ export function useFinalizeSession(sessionId: number) {
 }
 
 export interface SelfCheckinResponse {
-  sessionId: number;
+  sessionId?: number;
   sessionTitle: string;
-  athleteId: number;
-  athleteName: string;
+  athleteId?: number;
+  athleteName?: string;
   status: AttendanceStatus;
   checkedInAt: string;
-  alreadyCheckedIn: boolean;
+  distanceMeters?: number | null;
+  alreadyCheckedIn?: boolean;
   message: string;
 }
+
+export type SelfCheckinPayload = string | { code: string } | { sessionId: number; latitude: number; longitude: number };
 
 export function useSelfCheckin() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (code: string) => {
-      const res = await apiClient.post("/attendance/check-in", { code });
+    mutationFn: async (input: SelfCheckinPayload) => {
+      const payload = typeof input === "string" ? { code: input } : input;
+      const res = await apiClient.post("/attendance/check-in", payload);
       return res.data.data as SelfCheckinResponse;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["my-attendance"] });
       queryClient.invalidateQueries({ queryKey: ["sessions"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
     },
   });
 }

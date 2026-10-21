@@ -21,6 +21,9 @@ export interface CreateSessionPayload {
   startsAt: string;
   endsAt: string;
   venue?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  radiusMeters?: number;
   lateToleranceMinutes?: number;
   notes?: string | null;
 }

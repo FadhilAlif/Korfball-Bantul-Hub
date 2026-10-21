@@ -2,7 +2,7 @@ import type { AthleteSex, AthleteStatus } from "@/features/athletes/types";
 import type { SessionStatus, SessionType } from "@/features/sessions/types";
 
 export type AttendanceStatus = "PRESENT" | "LATE" | "EXCUSED" | "ABSENT";
-export type AttendanceMethod = "OFFICIAL" | "SELF_CHECKIN" | "EXCUSE_REQUEST";
+export type AttendanceMethod = "MANUAL" | "OFFICIAL" | "SELF_CHECKIN" | "EXCUSE_REQUEST" | "SYSTEM";
 
 export interface AttendanceSheetRow {
   athleteId: number;
@@ -14,6 +14,7 @@ export interface AttendanceSheetRow {
   status: AttendanceStatus | null;
   method: AttendanceMethod | null;
   checkedInAt: string | null;
+  checkinDistanceMeters?: number | null;
   note: string | null;
   recordedBy: number | null;
   recordedByName?: string | null;
@@ -29,6 +30,9 @@ export interface AttendanceSheetResponse {
     startsAt: string;
     endsAt: string;
     venue: string | null;
+    latitude?: number | null;
+    longitude?: number | null;
+    radiusMeters?: number;
     lateToleranceMinutes: number;
     checkinCode: string;
     status: SessionStatus;
@@ -61,6 +65,7 @@ export interface MyAttendanceHistoryItem {
   status: AttendanceStatus;
   method: AttendanceMethod;
   checkedInAt: string | null;
+  checkinDistanceMeters?: number | null;
   note: string | null;
 }
 

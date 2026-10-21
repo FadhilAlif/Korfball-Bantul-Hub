@@ -9,7 +9,8 @@ import { getErrorMessage } from "@/shared/lib/api-error";
 import { toast } from "@/shared/lib/toast";
 import { useCreateSession, useUpdateSession } from "../hooks";
 import { type SessionFormInput, type SessionFormOutput, sessionFormSchema } from "../schemas/session.schema";
-import type { SessionItem, SessionType } from "../types";
+import { DEFAULT_VENUE_PRESET, type SessionItem, type SessionType } from "../types";
+import { SessionLocationPicker } from "./SessionLocationPicker";
 
 const SESSION_TYPE_OPTIONS = [
   { value: "TRAINING", label: "Latihan Rutin" },
@@ -83,13 +84,20 @@ export function SessionModal({ isOpen, onClose, session }: SessionModalProps) {
       date: todayWib,
       startTime: "18:00",
       endTime: "20:00",
-      venue: "GOR Stadion Sultan Agung Bantul",
+      venue: DEFAULT_VENUE_PRESET.venue,
+      latitude: DEFAULT_VENUE_PRESET.latitude,
+      longitude: DEFAULT_VENUE_PRESET.longitude,
+      radiusMeters: DEFAULT_VENUE_PRESET.radiusMeters,
       lateToleranceMinutes: 15,
       notes: "",
     },
   });
 
   const selectedType = watch("type") ?? "TRAINING";
+  const watchedVenue = watch("venue") ?? "";
+  const watchedLat = watch("latitude") ?? null;
+  const watchedLng = watch("longitude") ?? null;
+  const watchedRadius = Number(watch("radiusMeters") ?? DEFAULT_VENUE_PRESET.radiusMeters);
 
   useEffect(() => {
     if (isOpen) {
@@ -103,6 +111,9 @@ export function SessionModal({ isOpen, onClose, session }: SessionModalProps) {
           startTime: start.time,
           endTime: end.time,
           venue: session.venue ?? "",
+          latitude: session.latitude ?? null,
+          longitude: session.longitude ?? null,
+          radiusMeters: session.radiusMeters ?? DEFAULT_VENUE_PRESET.radiusMeters,
           lateToleranceMinutes: session.lateToleranceMinutes,
           notes: session.notes ?? "",
         });
@@ -113,7 +124,10 @@ export function SessionModal({ isOpen, onClose, session }: SessionModalProps) {
           date: getNextDayOfWeekWib(2),
           startTime: "18:00",
           endTime: "20:00",
-          venue: "GOR Stadion Sultan Agung Bantul",
+          venue: DEFAULT_VENUE_PRESET.venue,
+          latitude: DEFAULT_VENUE_PRESET.latitude,
+          longitude: DEFAULT_VENUE_PRESET.longitude,
+          radiusMeters: DEFAULT_VENUE_PRESET.radiusMeters,
           lateToleranceMinutes: 15,
           notes: "",
         });
@@ -127,7 +141,10 @@ export function SessionModal({ isOpen, onClose, session }: SessionModalProps) {
     setValue("date", getNextDayOfWeekWib(2), { shouldValidate: true });
     setValue("startTime", "18:00", { shouldValidate: true });
     setValue("endTime", "20:00", { shouldValidate: true });
-    setValue("venue", "GOR Stadion Sultan Agung Bantul");
+    setValue("venue", DEFAULT_VENUE_PRESET.venue);
+    setValue("latitude", DEFAULT_VENUE_PRESET.latitude);
+    setValue("longitude", DEFAULT_VENUE_PRESET.longitude);
+    setValue("radiusMeters", DEFAULT_VENUE_PRESET.radiusMeters);
     setValue("lateToleranceMinutes", 15);
   };
 
@@ -137,7 +154,10 @@ export function SessionModal({ isOpen, onClose, session }: SessionModalProps) {
     setValue("date", getNextDayOfWeekWib(6), { shouldValidate: true });
     setValue("startTime", "19:00", { shouldValidate: true });
     setValue("endTime", "21:00", { shouldValidate: true });
-    setValue("venue", "GOR Stadion Sultan Agung Bantul");
+    setValue("venue", DEFAULT_VENUE_PRESET.venue);
+    setValue("latitude", DEFAULT_VENUE_PRESET.latitude);
+    setValue("longitude", DEFAULT_VENUE_PRESET.longitude);
+    setValue("radiusMeters", DEFAULT_VENUE_PRESET.radiusMeters);
     setValue("lateToleranceMinutes", 15);
   };
 
@@ -148,6 +168,9 @@ export function SessionModal({ isOpen, onClose, session }: SessionModalProps) {
       startsAt: `${data.date}T${data.startTime}:00+07:00`,
       endsAt: `${data.date}T${data.endTime}:00+07:00`,
       venue: data.venue,
+      latitude: data.latitude ?? null,
+      longitude: data.longitude ?? null,
+      radiusMeters: data.radiusMeters,
       lateToleranceMinutes: data.lateToleranceMinutes,
       notes: data.notes,
     };
@@ -268,11 +291,25 @@ export function SessionModal({ isOpen, onClose, session }: SessionModalProps) {
           <Input
             id="session-venue"
             {...register("venue")}
-            placeholder="GOR Stadion Sultan Agung Bantul"
+            placeholder="WIFA SPORT CENTER"
             iconLeft={<MapPin size={15} />}
             error={errors.venue?.message}
           />
         </FormField>
+
+        <SessionLocationPicker
+          venue={watchedVenue}
+          latitude={watchedLat}
+          longitude={watchedLng}
+          radiusMeters={watchedRadius}
+          onChangeVenue={(v) => setValue("venue", v, { shouldValidate: true })}
+          onChangeCoordinates={({ latitude, longitude }) => {
+            setValue("latitude", latitude, { shouldValidate: true });
+            setValue("longitude", longitude, { shouldValidate: true });
+          }}
+          onChangeRadius={(r) => setValue("radiusMeters", r, { shouldValidate: true })}
+          errorMessage={errors.latitude?.message || errors.longitude?.message || errors.radiusMeters?.message}
+        />
 
         <FormField label="Catatan (Opsional)" htmlFor="session-notes" error={errors.notes?.message}>
           <Input

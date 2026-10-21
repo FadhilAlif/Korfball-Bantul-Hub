@@ -93,7 +93,7 @@ export function AthleteTodaySessionCard() {
         <div className="flex flex-wrap items-center gap-2">
           <Button type="button" size="sm" onClick={() => setCheckinOpen(true)} className="gap-1.5">
             <KeyRound size={14} />
-            Check-In Kode 6 Digit
+            Check-In Presensi
           </Button>
 
           {nextSession && !myRecordForNext && isBeforeStart && (
@@ -159,7 +159,7 @@ export function AthleteTodaySessionCard() {
         </div>
       )}
 
-      <SelfCheckinModal isOpen={isCheckinOpen} onClose={() => setCheckinOpen(false)} />
+      <SelfCheckinModal isOpen={isCheckinOpen} onClose={() => setCheckinOpen(false)} session={nextSession ?? null} />
 
       {excuseSession && (
         <ExcuseRequestModal

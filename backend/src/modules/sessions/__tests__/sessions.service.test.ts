@@ -85,6 +85,7 @@ describe("SessionsService & Utils", () => {
         title: "Latihan",
         startsAt: "2026-10-20T18:00:00Z",
         endsAt: "2026-10-20T18:00:00Z", // same time
+        radiusMeters: 100,
         lateToleranceMinutes: 15,
       }),
     ).rejects.toThrow(BadRequestException);
@@ -95,6 +96,7 @@ describe("SessionsService & Utils", () => {
         title: "Latihan",
         startsAt: "2026-10-20T19:00:00Z",
         endsAt: "2026-10-20T18:00:00Z", // ends before start
+        radiusMeters: 100,
         lateToleranceMinutes: 15,
       }),
     ).rejects.toThrow("Jam selesai harus setelah jam mulai.");

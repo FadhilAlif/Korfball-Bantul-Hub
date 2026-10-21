@@ -10,11 +10,12 @@ import {
   teams,
   users,
 } from "../../database/schema/index.js";
-import type {
-  CreateSessionInput,
-  GenerateRoutineInput,
-  ListSessionsQuery,
-  UpdateSessionInput,
+import {
+  type CreateSessionInput,
+  DEFAULT_VENUE_PRESET,
+  type GenerateRoutineInput,
+  type ListSessionsQuery,
+  type UpdateSessionInput,
 } from "./sessions.schemas.js";
 import { createWibDate, generateCheckinCode, parseWibDateRange, toWibParts } from "./sessions.utils.js";
 
@@ -36,6 +37,9 @@ export interface SessionItem {
   startsAt: Date | string;
   endsAt: Date | string;
   venue: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  radiusMeters: number;
   lateToleranceMinutes: number;
   checkinCode: string | null;
   status: SessionStatus;
@@ -110,6 +114,9 @@ export class SessionsService {
       startsAt: r.session.startsAt,
       endsAt: r.session.endsAt,
       venue: r.session.venue,
+      latitude: r.session.latitude ?? null,
+      longitude: r.session.longitude ?? null,
+      radiusMeters: r.session.radiusMeters ?? 100,
       lateToleranceMinutes: r.session.lateToleranceMinutes,
       checkinCode: canViewCheckinCode ? r.session.checkinCode : null,
       status: r.session.status,
@@ -176,6 +183,9 @@ export class SessionsService {
       startsAt: row.session.startsAt,
       endsAt: row.session.endsAt,
       venue: row.session.venue,
+      latitude: row.session.latitude ?? null,
+      longitude: row.session.longitude ?? null,
+      radiusMeters: row.session.radiusMeters ?? 100,
       lateToleranceMinutes: row.session.lateToleranceMinutes,
       checkinCode: canViewCheckinCode ? row.session.checkinCode : null,
       status: row.session.status,
@@ -198,6 +208,12 @@ export class SessionsService {
       throw new BadRequestException("Jam selesai harus setelah jam mulai.");
     }
 
+    const hasLat = input.latitude !== undefined && input.latitude !== null;
+    const hasLon = input.longitude !== undefined && input.longitude !== null;
+    if (hasLat !== hasLon) {
+      throw new BadRequestException("Koordinat latitude dan longitude harus diisi lengkap.");
+    }
+
     const targetTeamId = await this.resolveTeamId(input.teamId);
 
     const checkinCode = generateCheckinCode();
@@ -211,6 +227,9 @@ export class SessionsService {
         startsAt,
         endsAt,
         venue: input.venue ? input.venue.trim() : null,
+        latitude: hasLat ? Number(input.latitude) : null,
+        longitude: hasLon ? Number(input.longitude) : null,
+        radiusMeters: input.radiusMeters ?? 100,
         lateToleranceMinutes: input.lateToleranceMinutes ?? 15,
         checkinCode,
         status: "SCHEDULED",
@@ -248,6 +267,14 @@ export class SessionsService {
       throw new BadRequestException("Jam selesai harus setelah jam mulai.");
     }
 
+    const nextLatitude = input.latitude !== undefined ? input.latitude : existing.latitude;
+    const nextLongitude = input.longitude !== undefined ? input.longitude : existing.longitude;
+    const hasLat = nextLatitude !== undefined && nextLatitude !== null;
+    const hasLon = nextLongitude !== undefined && nextLongitude !== null;
+    if (hasLat !== hasLon) {
+      throw new BadRequestException("Koordinat latitude dan longitude harus diisi lengkap.");
+    }
+
     await this.db
       .update(sessions)
       .set({
@@ -256,6 +283,9 @@ export class SessionsService {
         ...(input.startsAt !== undefined ? { startsAt } : {}),
         ...(input.endsAt !== undefined ? { endsAt } : {}),
         ...(input.venue !== undefined ? { venue: input.venue ? input.venue.trim() : null } : {}),
+        ...(input.latitude !== undefined ? { latitude: input.latitude ?? null } : {}),
+        ...(input.longitude !== undefined ? { longitude: input.longitude ?? null } : {}),
+        ...(input.radiusMeters !== undefined ? { radiusMeters: input.radiusMeters } : {}),
         ...(input.lateToleranceMinutes !== undefined ? { lateToleranceMinutes: input.lateToleranceMinutes } : {}),
         ...(input.notes !== undefined ? { notes: input.notes ? input.notes.trim() : null } : {}),
       })
@@ -345,7 +375,10 @@ export class SessionsService {
   }> {
     const teamId = await this.resolveTeamId(input.teamId);
     const weeks = input.weeks ?? 4;
-    const venue = input.venue ?? "GOR Stadion Sultan Agung Bantul";
+    const venue = input.venue ?? DEFAULT_VENUE_PRESET.venue;
+    const latitude = input.latitude !== undefined ? input.latitude : DEFAULT_VENUE_PRESET.latitude;
+    const longitude = input.longitude !== undefined ? input.longitude : DEFAULT_VENUE_PRESET.longitude;
+    const radiusMeters = input.radiusMeters ?? DEFAULT_VENUE_PRESET.radiusMeters;
     const lateToleranceMinutes = input.lateToleranceMinutes ?? 15;
 
     const baseDate = input.startDate ? new Date(`${input.startDate}T00:00:00+07:00`) : new Date();
@@ -372,6 +405,9 @@ export class SessionsService {
           startsAt,
           endsAt,
           venue,
+          latitude,
+          longitude,
+          radiusMeters,
           lateToleranceMinutes,
           userId,
         );
@@ -393,6 +429,9 @@ export class SessionsService {
           startsAt,
           endsAt,
           venue,
+          latitude,
+          longitude,
+          radiusMeters,
           lateToleranceMinutes,
           userId,
         );
@@ -418,6 +457,9 @@ export class SessionsService {
     startsAt: Date,
     endsAt: Date,
     venue: string,
+    latitude: number | null,
+    longitude: number | null,
+    radiusMeters: number,
     lateToleranceMinutes: number,
     userId?: number,
   ): Promise<SessionItem | null> {
@@ -441,6 +483,9 @@ export class SessionsService {
         startsAt,
         endsAt,
         venue,
+        latitude,
+        longitude,
+        radiusMeters,
         lateToleranceMinutes,
         checkinCode,
         status: "SCHEDULED",

@@ -258,6 +258,9 @@ export class DashboardService {
         startsAt: todaySessionRow.startsAt.toISOString(),
         endsAt: todaySessionRow.endsAt.toISOString(),
         venue: todaySessionRow.venue,
+        latitude: todaySessionRow.latitude ?? null,
+        longitude: todaySessionRow.longitude ?? null,
+        radiusMeters: todaySessionRow.radiusMeters ?? 100,
         checkinCode: isStaff ? todaySessionRow.checkinCode : undefined,
         myAttendance,
       };
@@ -286,6 +289,9 @@ export class DashboardService {
       startsAt: s.startsAt.toISOString(),
       endsAt: s.endsAt.toISOString(),
       venue: s.venue,
+      latitude: s.latitude ?? null,
+      longitude: s.longitude ?? null,
+      radiusMeters: s.radiusMeters ?? 100,
     }));
 
     // 5. Match Live / Berikutnya

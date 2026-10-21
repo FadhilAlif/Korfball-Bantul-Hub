@@ -236,4 +236,76 @@ describe("AttendanceService & Business Rules (BR-06, BR-07, BR-09, BR-10, BR-11,
       ),
     ).rejects.toThrow("Sesi dibatalkan.");
   });
+
+  it("BR-34: allows GPS self check-in when athlete is inside session radius at WIFA Sport Center", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-10-20T18:05:00Z"));
+
+    const session = {
+      id: 5,
+      teamId: 1,
+      title: "Latihan Rutin Selasa",
+      status: "SCHEDULED",
+      startsAt: new Date("2026-10-20T18:00:00Z"),
+      endsAt: new Date("2026-10-20T20:00:00Z"),
+      lateToleranceMinutes: 15,
+      checkinCode: "WIFA01",
+      latitude: -7.900181586573576,
+      longitude: 110.32812616243315,
+      radiusMeters: 100,
+    };
+
+    const mockDb = createMockDb([
+      [{ id: 10, fullName: "Budi", teamId: 1, teamIsInternal: true }],
+      [session],
+      [], // no existing attendance
+    ]);
+
+    const service = new AttendanceService(mockDb as never, throttle);
+    const res = await service.selfCheckin(
+      {
+        sessionId: 5,
+        latitude: -7.90005, // ~15m from WIFA Sport Center pin
+        longitude: 110.32815,
+      },
+      10,
+    );
+
+    expect(res.status).toBe("PRESENT");
+    expect(res.distanceMeters).toBeDefined();
+    expect(res.distanceMeters).toBeLessThanOrEqual(100);
+  });
+
+  it("BR-34: rejects GPS self check-in when athlete is outside session radius (400 BadRequest)", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-10-20T18:05:00Z"));
+
+    const session = {
+      id: 5,
+      teamId: 1,
+      title: "Latihan Rutin Selasa",
+      status: "SCHEDULED",
+      startsAt: new Date("2026-10-20T18:00:00Z"),
+      endsAt: new Date("2026-10-20T20:00:00Z"),
+      lateToleranceMinutes: 15,
+      checkinCode: "WIFA01",
+      latitude: -7.900181586573576,
+      longitude: 110.32812616243315,
+      radiusMeters: 100,
+    };
+
+    const mockDb = createMockDb([[{ id: 10, fullName: "Budi", teamId: 1, teamIsInternal: true }], [session]]);
+
+    const service = new AttendanceService(mockDb as never, throttle);
+    await expect(
+      service.selfCheckin(
+        {
+          sessionId: 5,
+          latitude: -7.89, // > 1100m away from WIFA Sport Center
+          longitude: 110.32812616243315,
+        },
+        10,
+      ),
+    ).rejects.toThrow(/Lokasi Anda berada di luar radius presensi \(Jarak: \d+m, Maksimal: 100m\)/);
+  });
 });

@@ -127,9 +127,16 @@ export const SessionTable = memo(function SessionTable({
                     {dateLabel} · {timeLabel}
                   </div>
                   {s.venue && (
-                    <div className="text-xs text-muted-foreground inline-flex items-center gap-1 mt-0.5">
-                      <MapPin size={12} />
-                      {s.venue}
+                    <div className="text-xs text-muted-foreground inline-flex items-center gap-1.5 mt-0.5 flex-wrap">
+                      <span className="inline-flex items-center gap-1">
+                        <MapPin size={12} />
+                        {s.venue}
+                      </span>
+                      {s.latitude !== null && s.longitude !== null && (
+                        <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                          GPS {s.radiusMeters}m
+                        </Badge>
+                      )}
                     </div>
                   )}
                 </div>
@@ -241,9 +248,16 @@ export const SessionTable = memo(function SessionTable({
                       {dateLabel} · {timeLabel}
                     </div>
                     {s.venue && (
-                      <div className="text-xs text-muted-foreground inline-flex items-center gap-1 mt-0.5">
-                        <MapPin size={12} />
-                        {s.venue}
+                      <div className="text-xs text-muted-foreground inline-flex items-center gap-1.5 mt-0.5 flex-wrap">
+                        <span className="inline-flex items-center gap-1">
+                          <MapPin size={12} />
+                          {s.venue}
+                        </span>
+                        {s.latitude !== null && s.longitude !== null && (
+                          <Badge variant="outline" className="text-[10px] px-1.5 py-0">
+                            GPS {s.radiusMeters}m
+                          </Badge>
+                        )}
                       </div>
                     )}
                   </TableCell>

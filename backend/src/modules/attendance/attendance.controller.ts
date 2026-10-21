@@ -111,7 +111,7 @@ export class AttendanceController {
   @RequirePermissions("attendance:self")
   @UsePipes(new ZodValidationPipe(selfCheckinSchema))
   async selfCheckin(@Body() input: SelfCheckinInput, @CurrentUser("id") userId: number) {
-    const result = await this.attendanceService.selfCheckin(input.code, userId);
+    const result = await this.attendanceService.selfCheckin(input, userId);
     return {
       message: result.message,
       data: result,

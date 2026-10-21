@@ -15,7 +15,7 @@ export const bulkAttendanceRecordSchema = z.object({
     .max(100, "Maksimal 100 data presensi per request"),
 });
 
-export const selfCheckinSchema = z.object({
+export const selfCheckinByCodeSchema = z.object({
   code: z
     .string()
     .trim()
@@ -23,6 +23,20 @@ export const selfCheckinSchema = z.object({
     .max(6, "Kode check-in harus 6 karakter")
     .transform((val) => val.toUpperCase()),
 });
+
+export const selfCheckinByGpsSchema = z.object({
+  sessionId: z.number().int().positive("sessionId wajib diisi"),
+  latitude: z
+    .number()
+    .min(-90, "Latitude harus berada di antara -90 dan 90.")
+    .max(90, "Latitude harus berada di antara -90 dan 90."),
+  longitude: z
+    .number()
+    .min(-180, "Longitude harus berada di antara -180 dan 180.")
+    .max(180, "Longitude harus berada di antara -180 dan 180."),
+});
+
+export const selfCheckinSchema = z.union([selfCheckinByGpsSchema, selfCheckinByCodeSchema]);
 
 export const excuseRequestSchema = z.object({
   reason: z.string().trim().min(5, "Alasan izin minimal 5 karakter").max(250, "Alasan izin maksimal 250 karakter"),

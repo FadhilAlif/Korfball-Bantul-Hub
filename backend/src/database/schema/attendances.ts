@@ -1,4 +1,4 @@
-import { index, integer, pgTable, serial, timestamp, unique, varchar } from "drizzle-orm/pg-core";
+import { doublePrecision, index, integer, pgTable, serial, timestamp, unique, varchar } from "drizzle-orm/pg-core";
 import { athletes } from "./athletes.js";
 import { attendanceMethodEnum, attendanceStatusEnum } from "./enums.js";
 import { sessions } from "./sessions.js";
@@ -17,6 +17,9 @@ export const attendances = pgTable(
     status: attendanceStatusEnum("status").notNull(),
     method: attendanceMethodEnum("method").default("MANUAL").notNull(),
     checkedInAt: timestamp("checked_in_at", { withTimezone: true }),
+    checkinLatitude: doublePrecision("checkin_latitude"),
+    checkinLongitude: doublePrecision("checkin_longitude"),
+    checkinDistanceMeters: integer("checkin_distance_meters"),
     note: varchar("note", { length: 250 }),
     recordedBy: integer("recorded_by").references(() => users.id, { onDelete: "set null" }),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
