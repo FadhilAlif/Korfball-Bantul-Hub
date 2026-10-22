@@ -19,11 +19,13 @@ Platform terintegrasi untuk manajemen presensi latihan dan pencatatan statistik 
    - **Coach & Official** (`coach`): Mengelola sesi latihan, presensi massal, setup match, dan menjalankan live recorder di pinggir lapangan.
    - **Athlete** (`athlete`): Self check-in mandiri dengan kode sesi 6 karakter, pengajuan izin latihan, riwayat kehadiran pribadi, dan statistik performa diri.
 
-2. **Jadwal Latihan Rutin & Presensi**:
-   - Preset jadwal otomatis: **Selasa 18.00–20.00 WIB** & **Sabtu 19.00–21.00 WIB**.
+2. **Jadwal Latihan Rutin & Presensi (GPS Geofence + Hybrid)**:
+   - Preset jadwal otomatis di **WIFA SPORT CENTER**: **Selasa 18.00–20.00 WIB** & **Sabtu 19.00–21.00 WIB**.
    - Batch generator sesi latihan bulanan instan (`POST /api/sessions/generate-routine`).
+   - Pemilih lokasi venue interaktif dengan **Leaflet + OpenStreetMap** dan visualisasi radius 100m.
+   - **Self Check-In Hybrid**: Check-in 1-tap via sensor GPS perangkat atlet di lokasi dan fallback kode 6 digit acak jika GPS indoor terkendala.
    - Lembar presensi official interaktif (segmented `H/T/I/A`) dengan polling non-destruktif 10 detik.
-   - Self check-in atlet berbasis toleransi waktu server (BR-10 & BR-11) dan rate-limiting kode salah 5/10 menit.
+   - Toleransi keterlambatan server 15 menit dan rate-limiting kode salah 5/10 menit.
    - Finalisasi sesi otomatis menandai atlet aktif tanpa presensi sebagai `ABSENT` (BR-07).
    - Export rekap presensi multi-sheet Excel (.xlsx).
 
@@ -83,11 +85,14 @@ npm run seed:demo
 
 ### 3. Akun Demo Bawaan
 
-| Role | Email | Password |
-|---|---|---|
-| **SuperAdmin** | `admin@korfballbantul.id` | `AdminBantul2026!` |
-| **Coach & Official** | `coach@korfballbantul.id` | `CoachBantul2026!` |
-| **Athlete** | `athlete@korfballbantul.id` | `AthleteBantul2026!` |
+| Role | Email | Password | Kegunaan |
+|---|---|---|---|
+| **SuperAdmin** | `admin@korfballbantul.id` | `Admin123!` | Manajemen tim, atlet, penautan akun, sesi, audit log |
+| **Coach & Official** | `coach@korfballbantul.id` | `Coach123!` | Kelola lembar presensi, live game recorder, box score |
+| **Athlete (Putri)** | `rukmi@korfballbantul.id` | `Athlete123!` | Self check-in 1-tap GPS & pengajuan izin atlet putri |
+| **Athlete (Putra)** | `guntur@korfballbantul.id` | `Athlete123!` | Self check-in 1-tap GPS & pengajuan izin atlet putra |
+
+> Lihat daftar lengkap seluruh kredensial pengujian di [docs/CREDS.md](docs/CREDS.md) dan panduan operasional di [docs/USER_GUIDE.md](docs/USER_GUIDE.md).
 
 ### 4. Menjalankan Server Pengembangan
 
@@ -133,7 +138,11 @@ npm run build:frontend
 
 ## 📄 Dokumentasi Terkait
 
-- [docs/PRD.md](docs/PRD.md) — Product Requirements Document v2.0 (Spesifikasi Bisnis & BR-01 s/d BR-30)
+- [docs/USER_GUIDE.md](docs/USER_GUIDE.md) — **Buku Panduan Pengguna Lengkap & Skenario Uji Coba Pilot (Wajib Baca Penguji)**
+- [docs/CREDS.md](docs/CREDS.md) — Kredensial Login Lengkap Seluruh Role & Profil
+- [docs/PRD.md](docs/PRD.md) — Product Requirements Document v2.2 (Spesifikasi Bisnis & BR-01 s/d BR-35)
+- [docs/USER_FLOW.md](docs/USER_FLOW.md) — Alur Pengguna (User Flow) & Diagram Interaksi
+- [docs/USER_STORIES.md](docs/USER_STORIES.md) — User Stories & Kriteria Penerimaan
 - [docs/API.md](docs/API.md) — Ringkasan Kontrak API dan Endpoint Lengkap
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — Arsitektur Sistem, Model Data, dan Event Sourcing
 - [docs/PROGRESS.md](docs/PROGRESS.md) — Pelacakan Progres Pengerjaan Monorepo
