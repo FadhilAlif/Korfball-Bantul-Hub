@@ -28,7 +28,7 @@ export function AuditLogsPage() {
     <div className="flex flex-col gap-5">
       <PageHeader
         title="Audit Logs"
-        description="A complete, immutable trail of authentication and authorization events."
+        description="Catatan riwayat aktivitas otentikasi, otorisasi, dan perubahan data penting dalam sistem."
       />
 
       <AuditLogToolbar

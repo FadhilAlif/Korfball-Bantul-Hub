@@ -41,21 +41,21 @@ export function VerifyEmailSent() {
       <AuthStatusCard
         variant="success"
         icon={<Check size={16} />}
-        title="Check your inbox"
+        title="Periksa Kotak Masuk Anda"
         description={
           <>
-            We&apos;ve sent a verification link to{" "}
-            <b className="text-foreground font-semibold">{email || "your email"}</b>. The link expires in 24 hours.
+            Kami telah mengirimkan tautan verifikasi ke{" "}
+            <b className="text-foreground font-semibold">{email || "email Anda"}</b>. Tautan ini berlaku selama 24 jam.
           </>
         }
       >
         <div className="flex flex-col gap-2">
           <Button type="button" variant="outline" onClick={() => resend()} disabled={!canResend} isLoading={isPending}>
-            {cooldown > 0 ? `Resend in ${cooldown}s` : "Resend verification email"}
+            {cooldown > 0 ? `Kirim ulang dalam ${cooldown}s` : "Kirim ulang email verifikasi"}
           </Button>
 
           {isSuccess && cooldown > 0 && (
-            <p className="text-xs text-success text-center">Email sent! Check your inbox.</p>
+            <p className="text-xs text-success text-center">Email terkirim! Silakan periksa kotak masuk Anda.</p>
           )}
 
           {error && <p className="text-xs text-destructive text-center">{getErrorMessage(error)}</p>}

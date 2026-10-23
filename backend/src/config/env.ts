@@ -12,7 +12,7 @@ const envSchema = z.object({
   DATABASE_URL: z.string().optional(),
   DB_HOST: z.string().default("localhost"),
   DB_PORT: z.coerce.number().default(5432),
-  DB_NAME: z.string().default("rbac_db"),
+  DB_NAME: z.string().default("korfball_hub"),
   DB_USER: z.string().default("postgres"),
   DB_PASSWORD: z.string().default("postgres"),
   DB_SSL: z.string().default("false"),
@@ -30,7 +30,7 @@ const envSchema = z.object({
   RESEND_FROM: z.string().default("onboarding@resend.dev"),
   EMAIL_FROM: z.string().optional(),
   REDIS_URL: z.string().optional(),
-  APP_NAME: z.string().default("RBAC App"),
+  APP_NAME: z.string().default("Korfball Hub"),
 });
 
 const result = envSchema.safeParse(process.env);

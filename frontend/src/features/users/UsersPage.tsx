@@ -50,8 +50,8 @@ export function UsersPage() {
   return (
     <div className="flex flex-col gap-5">
       <PageHeader
-        title="Users"
-        description="People who can sign into this workspace, and the roles assigned to them."
+        title="Pengguna"
+        description="Kelola akun pengguna yang dapat masuk ke Korfball Hub dan penetapan role masing-masing."
       />
 
       <UserToolbar

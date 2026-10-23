@@ -1,7 +1,7 @@
 import { LoginForm } from "@/features/auth/login";
 
 export const metadata = {
-  title: "Login - RBAC Boilerplate",
+  title: "Masuk — Korfball Hub",
 };
 
 export default function LoginPage() {

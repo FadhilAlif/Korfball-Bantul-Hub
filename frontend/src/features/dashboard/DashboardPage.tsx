@@ -187,13 +187,13 @@ export function DashboardPage() {
         <RecentMatchesList matches={summary?.recentMatches ?? []} />
       </div>
 
-      {/* Admin Workspace Details (Collapsible for SuperAdmin / Admin) */}
+      {/* Panel Administrasi Sistem (Khusus SuperAdmin / Admin) */}
       {canInviteUser && (
         <details className="group border border-border rounded-xl bg-card overflow-hidden shadow-xs">
           <summary className="flex items-center justify-between px-5 py-4 cursor-pointer select-none hover:bg-muted/30 transition-colors">
             <div className="flex items-center gap-2">
               <Shield size={16} className="text-primary" />
-              <span className="font-semibold text-sm">Administrasi Workspace & Sistem</span>
+              <span className="font-semibold text-sm">Administrasi Sistem &amp; Pengguna</span>
             </div>
             <div className="flex items-center gap-2">
               <Button
@@ -207,7 +207,7 @@ export function DashboardPage() {
                 disabled={isExporting}
               >
                 {isExporting ? <Loader2 size={13} className="animate-spin" /> : <Download size={13} />}
-                <span>{isExporting ? "Exporting..." : "Export"}</span>
+                <span>{isExporting ? "Mengekspor..." : "Ekspor"}</span>
               </Button>
               <ChevronDown size={16} className="text-muted-foreground group-open:rotate-180 transition-transform" />
             </div>
@@ -218,7 +218,7 @@ export function DashboardPage() {
               <div className="flex items-center justify-between pb-3 border-b border-border">
                 <div>
                   <h4 className="text-sm font-semibold">Aktivitas Terakhir</h4>
-                  <p className="text-xs text-muted-foreground">Audit log seluruh workspace</p>
+                  <p className="text-xs text-muted-foreground">Log audit aktivitas seluruh sistem</p>
                 </div>
                 {canViewAuditLogs && (
                   <Link

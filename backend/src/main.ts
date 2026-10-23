@@ -65,8 +65,8 @@ async function bootstrap() {
 
   // Setup Swagger OpenAPI specification
   const config = new DocumentBuilder()
-    .setTitle("RBAC Boilerplate API")
-    .setDescription("Production-ready Role-Based Access Control API with NestJS & Drizzle ORM")
+    .setTitle("Korfball Hub API")
+    .setDescription("API Presensi Kehadiran & Live Game Statistics Korfball Bantul dengan NestJS & Drizzle ORM")
     .setVersion("1.0.0")
     .addCookieAuth("access_token")
     .build();

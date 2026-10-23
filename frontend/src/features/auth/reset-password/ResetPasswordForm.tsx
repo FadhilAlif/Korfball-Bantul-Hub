@@ -30,8 +30,8 @@ export function ResetPasswordForm() {
         <AuthStatusCard
           variant="success"
           icon={<Check size={16} />}
-          title="Password updated"
-          description="You can now sign in with your new password."
+          title="Password Berhasil Diperbarui"
+          description="Sekarang Anda dapat masuk kembali menggunakan password baru Anda."
         />
       </AuthShell>
     );
@@ -39,16 +39,18 @@ export function ResetPasswordForm() {
 
   return (
     <AuthShell footer={<BackToSignInLink />}>
-      <h1 className="text-[26px] font-semibold tracking-tight m-0">Set a new password</h1>
-      <p className="mt-1.5 mb-7 text-sm text-muted-foreground">Choose a password you haven&apos;t used before.</p>
+      <h1 className="text-[26px] font-semibold tracking-tight m-0">Atur Password Baru</h1>
+      <p className="mt-1.5 mb-7 text-sm text-muted-foreground">
+        Pilih password baru yang kuat dan belum pernah digunakan sebelumnya.
+      </p>
 
       {errors.root?.message && <Alert message={errors.root.message} className="mb-4" />}
 
       <form onSubmit={onSubmit} className="flex flex-col gap-3.5">
-        <FormField label="New password" required error={errors.password?.message}>
+        <FormField label="Password Baru" required error={errors.password?.message}>
           <Input
             type="password"
-            placeholder="Enter new password"
+            placeholder="Masukkan password baru"
             autoComplete="new-password"
             iconLeft={<Lock size={16} />}
             error={errors.password?.message}
@@ -57,10 +59,10 @@ export function ResetPasswordForm() {
           <PasswordStrengthMeterMemo password={password} />
         </FormField>
 
-        <FormField label="Confirm new password" required error={errors.confirmPassword?.message}>
+        <FormField label="Konfirmasi Password Baru" required error={errors.confirmPassword?.message}>
           <Input
             type="password"
-            placeholder="Re-enter new password"
+            placeholder="Ulangi password baru"
             autoComplete="new-password"
             iconLeft={<Lock size={16} />}
             error={errors.confirmPassword?.message}
@@ -69,7 +71,7 @@ export function ResetPasswordForm() {
         </FormField>
 
         <Button type="submit" isLoading={isLoading} fullWidth size="lg">
-          Update password
+          Simpan Password Baru
         </Button>
       </form>
     </AuthShell>

@@ -39,7 +39,10 @@ export const ProfilePage = memo(function ProfilePage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <PageHeader title="Profile" description="Your account, roles, and the permissions inherited from them." />
+      <PageHeader
+        title="Profil Saya"
+        description="Informasi akun pengguna, role aktif, dan wewenang akses yang dimiliki."
+      />
 
       <ProfileCard name={user.name} email={user.email} onEditProfile={openEditProfile} />
 

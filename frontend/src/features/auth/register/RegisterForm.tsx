@@ -12,9 +12,9 @@ const PasswordStrengthMeterMemo = memo(PasswordStrengthMeter);
 
 const footer = (
   <>
-    Already have an account?{" "}
+    Sudah memiliki akun?{" "}
     <Link href="/login" className="text-primary font-medium no-underline">
-      Sign in
+      Masuk
     </Link>
   </>
 );
@@ -29,28 +29,28 @@ export function RegisterForm() {
 
   return (
     <AuthShell footer={footer}>
-      <h1 className="text-[26px] font-semibold tracking-tight m-0">Create your account</h1>
+      <h1 className="text-[26px] font-semibold tracking-tight m-0">Buat Akun Baru</h1>
       <p className="mt-1.5 mb-7 text-sm text-muted-foreground">
-        You&apos;ll be the workspace owner with full admin permissions.
+        Daftarkan akun Anda untuk mengakses portal Korfball Hub Bantul.
       </p>
 
       {errors.root?.message && <Alert message={errors.root.message} className="mb-4" />}
 
       <form onSubmit={onSubmit} className="flex flex-col gap-3.5">
-        <FormField label="Full name" required error={errors.name?.message}>
+        <FormField label="Nama Lengkap" required error={errors.name?.message}>
           <Input
             type="text"
-            placeholder="Ada Lovelace"
+            placeholder="Nama Lengkap Anda"
             autoComplete="name"
             error={errors.name?.message}
             {...register("name")}
           />
         </FormField>
 
-        <FormField label="Work email" required error={errors.email?.message}>
+        <FormField label="Email" required error={errors.email?.message}>
           <Input
             type="email"
-            placeholder="you@company.com"
+            placeholder="nama@korfballbantul.id"
             autoComplete="email"
             iconLeft={<Mail size={16} />}
             error={errors.email?.message}
@@ -62,11 +62,11 @@ export function RegisterForm() {
           label="Password"
           required
           error={errors.password?.message}
-          hint={!errors.password?.message ? "8+ characters, mix of letters and numbers" : undefined}
+          hint={!errors.password?.message ? "Minimal 8 karakter, kombinasi huruf dan angka" : undefined}
         >
           <Input
             type="password"
-            placeholder="Create a strong password"
+            placeholder="Buat password yang kuat"
             autoComplete="new-password"
             iconLeft={<Lock size={16} />}
             error={errors.password?.message}
@@ -75,10 +75,10 @@ export function RegisterForm() {
           <PasswordStrengthMeterMemo password={password} />
         </FormField>
 
-        <FormField label="Confirm password" required error={errors.confirmPassword?.message}>
+        <FormField label="Konfirmasi Password" required error={errors.confirmPassword?.message}>
           <Input
             type="password"
-            placeholder="Re-enter password"
+            placeholder="Ulangi password"
             autoComplete="new-password"
             iconLeft={<Lock size={16} />}
             error={errors.confirmPassword?.message}
@@ -87,11 +87,11 @@ export function RegisterForm() {
         </FormField>
 
         <Button type="submit" isLoading={isPending} fullWidth size="lg" className="mt-1.5">
-          Create account
+          Daftar Akun
         </Button>
 
         <p className="text-xs text-muted-foreground text-center mt-1">
-          By continuing you accept our Terms and Privacy Policy.
+          Dengan mendaftar, Anda menyetujui Ketentuan &amp; Kebijakan Privasi Korfball Hub.
         </p>
       </form>
     </AuthShell>

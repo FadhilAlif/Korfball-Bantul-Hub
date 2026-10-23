@@ -18,7 +18,7 @@ export const useAuthStore = create<AuthState>()(
       clearAuth: () => set({ user: null, isAuthenticated: false }),
     }),
     {
-      name: "rbac-auth",
+      name: "korfball-hub-auth",
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         user: state.user,
