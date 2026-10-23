@@ -26,7 +26,7 @@ export const StatCard = memo(function StatCard({ label, value, delta, sub, icon,
       ) : isError ? (
         <span className="text-[26px] font-semibold leading-none tracking-tight text-muted-foreground">—</span>
       ) : (
-        <div className="text-[24px] sm:text-[28px] font-semibold leading-none tracking-tight">
+        <div className="text-[20px] sm:text-[26px] font-semibold leading-none tracking-tight truncate">
           {typeof value === "number" ? value.toLocaleString() : value}
         </div>
       )}

@@ -17,7 +17,7 @@ export const Header = memo(function Header({ onToggleSidebar, onOpenMobileNav }:
   const { isDark, toggle: onToggleDark } = useDarkMode();
 
   return (
-    <header className="h-16 px-6 border-b border-border bg-background flex items-center gap-4 sticky top-0 z-30 shrink-0 print:hidden">
+    <header className="h-16 px-4 sm:px-6 border-b border-border bg-background flex items-center gap-4 sticky top-0 z-30 shrink-0 print:hidden">
       <div className="flex items-center gap-3.5 flex-1 min-w-0">
         <Button
           type="button"

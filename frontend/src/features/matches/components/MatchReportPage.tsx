@@ -55,16 +55,16 @@ export function MatchReportPage({ matchId }: MatchReportPageProps) {
   return (
     <div className="flex flex-col gap-6">
       {/* Top Action Bar (Hidden on print) */}
-      <div className="flex items-center justify-between print:hidden">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 print:hidden">
         <Link
           href={`/matches/${matchId}`}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors shrink-0"
         >
           <ArrowLeft size={14} />
           <span>Kembali ke Detail Pertandingan</span>
         </Link>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Link
             href={`/matches/${matchId}/box-score`}
             className={buttonVariants({ variant: "outline", size: "sm", className: "text-xs" })}
@@ -93,9 +93,9 @@ export function MatchReportPage({ matchId }: MatchReportPageProps) {
       {/* Official Korfball Match Sheet (Print Canvas) */}
       <div className="bg-card print:bg-white text-foreground print:text-black p-4 sm:p-8 rounded-2xl border print:border-none border-border shadow-xs print:shadow-none flex flex-col gap-6 print:gap-3 print:m-0 print:p-0">
         {/* Document Header (Page 1) */}
-        <div className="flex items-center justify-between pb-3.5 print:pb-2 border-b-2 border-slate-900 print:border-black">
-          <div className="flex items-center gap-3">
-            <div className="relative w-14 h-14 print:w-11 print:h-11 shrink-0 rounded-full overflow-hidden border border-border print:border-slate-400">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3.5 print:pb-2 border-b-2 border-slate-900 print:border-black">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="relative w-12 sm:w-14 h-12 sm:h-14 print:w-11 print:h-11 shrink-0 rounded-full overflow-hidden border border-border print:border-slate-400">
               <Image
                 src="/Korfball Bantul Logo.jpg"
                 alt="Korfball Bantul Logo"
@@ -104,17 +104,17 @@ export function MatchReportPage({ matchId }: MatchReportPageProps) {
                 priority
               />
             </div>
-            <div>
-              <h1 className="font-black text-lg sm:text-xl print:text-base tracking-tight uppercase leading-none print:text-black">
+            <div className="min-w-0">
+              <h1 className="font-black text-base sm:text-xl print:text-base tracking-tight uppercase leading-tight print:text-black">
                 Lembar Pertandingan Resmi Korfball
               </h1>
-              <p className="text-xs print:text-[8pt] font-semibold text-muted-foreground print:text-slate-700 mt-1">
+              <p className="text-[11px] sm:text-xs print:text-[8pt] font-semibold text-muted-foreground print:text-slate-700 mt-1 truncate">
                 PENGKAB KORFBALL BANTUL • {match.competition || "TOURNAMENT SERIES 2026"}
               </p>
             </div>
           </div>
 
-          <div className="text-right text-xs print:text-[8pt]">
+          <div className="text-left sm:text-right text-xs print:text-[8pt] shrink-0 border-t sm:border-t-0 pt-2 sm:pt-0 border-border/50">
             <div className="font-bold text-sm print:text-[10pt] uppercase print:text-black">Format {match.format}</div>
             <div className="text-muted-foreground print:text-slate-700 font-medium">
               {match.gameNumber || `Match #${match.id}`} • {match.type}
@@ -151,32 +151,36 @@ export function MatchReportPage({ matchId }: MatchReportPageProps) {
         </div>
 
         {/* Big Final Score Banner */}
-        <div className="flex items-center justify-between p-3.5 print:p-2 bg-muted/40 print:bg-slate-50 rounded-xl border border-border print:border-slate-800">
-          <div className="flex-1 text-center sm:text-right">
+        <div className="flex items-center justify-between p-3.5 print:p-2 bg-muted/40 print:bg-slate-50 rounded-xl border border-border print:border-slate-800 gap-2">
+          <div className="flex-1 min-w-0 text-center sm:text-right">
             <span className="text-[10px] print:text-[7.5pt] font-bold text-muted-foreground print:text-slate-600 uppercase block">
               HOME TEAM
             </span>
-            <span className="font-black text-lg sm:text-xl print:text-base print:text-black">{home.teamName}</span>
+            <span className="font-black text-base sm:text-xl print:text-base print:text-black truncate block">
+              {home.teamName}
+            </span>
           </div>
 
-          <div className="px-5 py-1.5 bg-card print:bg-white rounded-xl border border-border print:border-slate-800 font-black text-2xl sm:text-3xl print:text-2xl tabular-nums shadow-xs print:shadow-none print:text-black mx-4">
+          <div className="shrink-0 px-3 sm:px-5 py-1.5 bg-card print:bg-white rounded-xl border border-border print:border-slate-800 font-black text-xl sm:text-3xl print:text-2xl tabular-nums shadow-xs print:shadow-none print:text-black mx-1 sm:mx-4">
             {home.pts} - {away.pts}
           </div>
 
-          <div className="flex-1 text-center sm:text-left">
+          <div className="flex-1 min-w-0 text-center sm:text-left">
             <span className="text-[10px] print:text-[7.5pt] font-bold text-muted-foreground print:text-slate-600 uppercase block">
               AWAY TEAM
             </span>
-            <span className="font-black text-lg sm:text-xl print:text-base print:text-black">{away.teamName}</span>
+            <span className="font-black text-base sm:text-xl print:text-base print:text-black truncate block">
+              {away.teamName}
+            </span>
           </div>
         </div>
 
         {/* Skor Babak Table */}
-        <div className="flex flex-col gap-1 print:gap-0.5">
+        <div className="flex flex-col gap-1 print:gap-0.5 overflow-x-auto min-w-0 w-full">
           <span className="font-bold text-xs print:text-[8pt] uppercase tracking-wider print:text-black">
             Ringkasan Skor Babak
           </span>
-          <table className="w-full text-xs print:text-[7.5pt] text-center border-collapse border border-border print:border-slate-800">
+          <table className="w-full min-w-[320px] print:min-w-0 text-xs print:text-[7.5pt] text-center border-collapse border border-border print:border-slate-800">
             <thead className="bg-muted/60 print:bg-slate-100 text-muted-foreground print:text-black font-semibold text-[10px] print:text-[7pt] uppercase">
               <tr>
                 <th className="py-1 px-3 print:py-0.5 print:px-2 text-left border border-border print:border-slate-600">
@@ -371,12 +375,12 @@ export function MatchReportPage({ matchId }: MatchReportPageProps) {
 
 function PrintBoxScoreTable({ team, label }: { team: TeamBoxScore; label: string }) {
   return (
-    <div className="flex flex-col gap-1 print:gap-0.5 print:break-inside-avoid">
-      <div className="flex items-center justify-between text-xs">
-        <span className="font-bold uppercase tracking-wider print:text-[8pt] print:text-black">
+    <div className="flex flex-col gap-1 print:gap-0.5 print:break-inside-avoid min-w-0 w-full">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs">
+        <span className="font-bold uppercase tracking-wider print:text-[8pt] print:text-black truncate">
           Box Score: {team.teamName} ({label})
         </span>
-        <div className="font-mono text-[11px] print:text-[7.5pt] flex items-center gap-3 print:text-black">
+        <div className="font-mono text-[11px] print:text-[7.5pt] flex items-center gap-3 print:text-black shrink-0">
           <span>
             PTS: <strong>{team.pts}</strong>
           </span>
@@ -389,8 +393,8 @@ function PrintBoxScoreTable({ team, label }: { team: TeamBoxScore; label: string
         </div>
       </div>
 
-      <div className="overflow-x-auto print:overflow-visible">
-        <table className="w-full text-[10px] print:text-[7pt] text-right border-collapse border border-border print:border-slate-800">
+      <div className="overflow-x-auto print:overflow-visible min-w-0 w-full">
+        <table className="w-full min-w-[650px] print:min-w-0 text-[10px] print:text-[7pt] text-right border-collapse border border-border print:border-slate-800">
           <thead className="bg-muted/70 print:bg-slate-100 text-muted-foreground print:text-black font-semibold uppercase text-[9px] print:text-[6.5pt] border-b border-border print:border-slate-800">
             <tr>
               <th className="py-1 px-1 print:py-0.5 print:px-0.5 text-center w-6 print:w-5 border border-border print:border-slate-600">

@@ -258,20 +258,24 @@ export function LineupEditor({ match, readOnly = false, onSaved }: LineupEditorP
   const isLoadingAthletes = activeSide === "HOME" ? isLoadingHomeAthletes : isLoadingAwayAthletes;
 
   return (
-    <div className="flex flex-col gap-4 p-4 rounded-2xl bg-card border border-border shadow-xs">
+    <div className="flex flex-col gap-4 p-4 rounded-2xl bg-card border border-border shadow-xs min-w-0 w-full max-w-full">
       {/* Side Selector Tabs */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-border">
-        <Tabs value={activeSide} onValueChange={(val) => setActiveSide(val as MatchSide)} className="w-full sm:w-auto">
-          <TabsList className="h-10">
-            <TabsTrigger value="HOME" className="gap-2 font-bold text-xs">
+        <Tabs
+          value={activeSide}
+          onValueChange={(val) => setActiveSide(val as MatchSide)}
+          className="w-full sm:w-auto min-w-0 flex-1 max-w-xl"
+        >
+          <TabsList className="grid grid-cols-2 w-full max-w-full h-auto min-h-10 p-1">
+            <TabsTrigger value="HOME" className="gap-1.5 font-bold text-xs min-w-0 px-2 py-1.5">
               <span
                 className="w-2.5 h-2.5 rounded-full inline-block shrink-0"
                 style={{ backgroundColor: match.homeColor || "#FACC15" }}
               />
-              <span>HOME: {match.homeTeamName}</span>
+              <span className="truncate">HOME: {match.homeTeamName}</span>
               <span
                 className={cn(
-                  "text-[10px] px-1.5 py-0.5 rounded-full font-mono font-medium",
+                  "text-[10px] px-1.5 py-0.5 rounded-full font-mono font-medium shrink-0",
                   isHomeComplete
                     ? "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300"
                     : "bg-muted text-muted-foreground",
@@ -280,18 +284,18 @@ export function LineupEditor({ match, readOnly = false, onSaved }: LineupEditorP
                 {homeStarters.length}/{targetTotal}
               </span>
               {dirtySides.HOME && (
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-500" title="Ada perubahan belum disimpan" />
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" title="Ada perubahan belum disimpan" />
               )}
             </TabsTrigger>
-            <TabsTrigger value="AWAY" className="gap-2 font-bold text-xs">
+            <TabsTrigger value="AWAY" className="gap-1.5 font-bold text-xs min-w-0 px-2 py-1.5">
               <span
                 className="w-2.5 h-2.5 rounded-full inline-block shrink-0"
                 style={{ backgroundColor: match.awayColor || "#3B82F6" }}
               />
-              <span>AWAY: {match.awayTeamName}</span>
+              <span className="truncate">AWAY: {match.awayTeamName}</span>
               <span
                 className={cn(
-                  "text-[10px] px-1.5 py-0.5 rounded-full font-mono font-medium",
+                  "text-[10px] px-1.5 py-0.5 rounded-full font-mono font-medium shrink-0",
                   isAwayComplete
                     ? "bg-emerald-500/20 text-emerald-700 dark:text-emerald-300"
                     : "bg-muted text-muted-foreground",
@@ -300,7 +304,7 @@ export function LineupEditor({ match, readOnly = false, onSaved }: LineupEditorP
                 {awayStarters.length}/{targetTotal}
               </span>
               {dirtySides.AWAY && (
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-500" title="Ada perubahan belum disimpan" />
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" title="Ada perubahan belum disimpan" />
               )}
             </TabsTrigger>
           </TabsList>
@@ -378,8 +382,8 @@ export function LineupEditor({ match, readOnly = false, onSaved }: LineupEditorP
           </Button>
         </div>
       ) : (
-        <div className="overflow-x-auto border border-border rounded-xl">
-          <table className="w-full text-xs text-left">
+        <div className="overflow-x-auto w-full min-w-0 border border-border rounded-xl">
+          <table className="w-full min-w-[540px] text-xs text-left">
             <thead className="bg-muted/50 border-b border-border text-muted-foreground font-semibold uppercase tracking-wider text-[11px]">
               <tr>
                 <th className="py-2.5 px-3 w-12 text-center">Ikut</th>

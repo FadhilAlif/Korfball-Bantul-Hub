@@ -345,7 +345,7 @@ function MatchCard({
           )}
         </div>
 
-        <div className="flex items-center gap-2 ml-auto">
+        <div className="flex flex-wrap items-center gap-2 ml-auto justify-end">
           <Link href={`/matches/${match.id}`} className={buttonVariants({ variant: "outline", size: "sm" })}>
             Detail & Lineup
           </Link>

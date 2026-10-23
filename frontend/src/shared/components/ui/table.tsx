@@ -83,8 +83,13 @@ interface TableShellProps {
 
 function TableShell({ children, className }: TableShellProps) {
   return (
-    <div className={cn("rounded-xl border border-border bg-card shadow-xs", className)}>
-      <div className="overflow-x-auto">{children}</div>
+    <div
+      className={cn(
+        "w-full max-w-full min-w-0 rounded-xl border border-border bg-card shadow-xs overflow-hidden",
+        className,
+      )}
+    >
+      <div className="w-full overflow-x-auto">{children}</div>
     </div>
   );
 }
