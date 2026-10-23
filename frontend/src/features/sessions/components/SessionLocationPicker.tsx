@@ -2,7 +2,7 @@
 
 import "leaflet/dist/leaflet.css";
 import { Compass, ExternalLink, LocateFixed, MapPin, MapPinOff, Radar } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Badge, Button, Input } from "@/shared/components/ui";
 import { toast } from "@/shared/lib/toast";
 import { DEFAULT_VENUE_PRESET, VENUE_PRESETS, type VenuePreset } from "../types";
@@ -34,6 +34,8 @@ export function SessionLocationPicker({
   const mapInstanceRef = useRef<import("leaflet").Map | null>(null);
   const markerRef = useRef<import("leaflet").Marker | null>(null);
   const circleRef = useRef<import("leaflet").Circle | null>(null);
+  const resizeObserverRef = useRef<ResizeObserver | null>(null);
+  const timeoutIdRef = useRef<NodeJS.Timeout | null>(null);
   const onChangeCoordsRef = useRef(onChangeCoordinates);
   onChangeCoordsRef.current = onChangeCoordinates;
 
@@ -44,14 +46,48 @@ export function SessionLocationPicker({
   const activeLng = longitude ?? DEFAULT_VENUE_PRESET.longitude;
   const safeRadius = Number.isFinite(radiusMeters) && radiusMeters >= 20 ? radiusMeters : 100;
 
+  const safeInvalidateSize = useCallback(() => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+    try {
+      const container = map.getContainer?.();
+      if (
+        container &&
+        document.body.contains(container) &&
+        (map as unknown as { _loaded?: boolean; _mapPane?: HTMLElement })._loaded &&
+        (map as unknown as { _loaded?: boolean; _mapPane?: HTMLElement })._mapPane
+      ) {
+        map.invalidateSize();
+      }
+    } catch {
+      // Suppress race condition if container is detaching during unmount or resize
+    }
+  }, []);
+
+  const cleanupMap = useCallback(() => {
+    if (resizeObserverRef.current) {
+      resizeObserverRef.current.disconnect();
+      resizeObserverRef.current = null;
+    }
+    if (timeoutIdRef.current) {
+      clearTimeout(timeoutIdRef.current);
+      timeoutIdRef.current = null;
+    }
+    if (mapInstanceRef.current) {
+      try {
+        mapInstanceRef.current.remove();
+      } catch {
+        // ignore
+      }
+      mapInstanceRef.current = null;
+      markerRef.current = null;
+      circleRef.current = null;
+    }
+  }, []);
+
   useEffect(() => {
     if (!hasCoordinates || !mapContainerRef.current) {
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove();
-        mapInstanceRef.current = null;
-        markerRef.current = null;
-        circleRef.current = null;
-      }
+      cleanupMap();
       return;
     }
 
@@ -61,6 +97,11 @@ export function SessionLocationPicker({
       if (!isMounted || !mapContainerRef.current) return;
 
       if (!mapInstanceRef.current) {
+        const containerEl = mapContainerRef.current as unknown as { _leaflet_id?: number };
+        if (containerEl._leaflet_id) {
+          delete containerEl._leaflet_id;
+        }
+
         const map = L.map(mapContainerRef.current, {
           center: [activeLat, activeLng],
           zoom: 17,
@@ -111,38 +152,42 @@ export function SessionLocationPicker({
         markerRef.current = marker;
         circleRef.current = circle;
 
-        setTimeout(() => {
-          map.invalidateSize();
-        }, 120);
+        timeoutIdRef.current = setTimeout(() => {
+          safeInvalidateSize();
+        }, 150);
 
-        if (mapContainerRef.current && typeof ResizeObserver !== "undefined") {
+        if (typeof ResizeObserver !== "undefined" && mapContainerRef.current) {
           const resizeObserver = new ResizeObserver(() => {
-            map.invalidateSize();
+            window.requestAnimationFrame(() => {
+              safeInvalidateSize();
+            });
           });
           resizeObserver.observe(mapContainerRef.current);
+          resizeObserverRef.current = resizeObserver;
         }
       } else {
         markerRef.current?.setLatLng([activeLat, activeLng]);
         circleRef.current?.setLatLng([activeLat, activeLng]);
         circleRef.current?.setRadius(safeRadius);
-        mapInstanceRef.current.panTo([activeLat, activeLng], { animate: true });
-        mapInstanceRef.current.invalidateSize();
+        try {
+          mapInstanceRef.current.panTo([activeLat, activeLng], { animate: true });
+        } catch {
+          // ignore
+        }
+        safeInvalidateSize();
       }
     });
 
     return () => {
       isMounted = false;
     };
-  }, [hasCoordinates, activeLat, activeLng, safeRadius]);
+  }, [hasCoordinates, activeLat, activeLng, safeRadius, cleanupMap, safeInvalidateSize]);
 
   useEffect(() => {
     return () => {
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove();
-        mapInstanceRef.current = null;
-      }
+      cleanupMap();
     };
-  }, []);
+  }, [cleanupMap]);
 
   const handleSelectPreset = (preset: VenuePreset) => {
     onChangeVenue?.(preset.venue);
