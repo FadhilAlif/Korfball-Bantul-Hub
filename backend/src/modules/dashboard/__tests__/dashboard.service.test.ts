@@ -158,6 +158,7 @@ describe("DashboardService - getDashboardSummary", () => {
         id: 12,
         fullName: "Rukmi",
         nickname: "Rukmi",
+        photoUrl: null,
         sex: "FEMALE",
         jerseyNumber: 1,
         teamId: 1,

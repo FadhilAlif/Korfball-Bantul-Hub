@@ -43,7 +43,10 @@ export function PermissionsPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <PageHeader title="Permissions" description="Atomic capabilities. Group them into roles, then assign to users." />
+      <PageHeader
+        title="Izin Akses (Permissions)"
+        description="Hak akses granular sistem. Dikelompokkan ke dalam role, lalu ditetapkan ke pengguna."
+      />
 
       <PermissionToolbar
         search={search}

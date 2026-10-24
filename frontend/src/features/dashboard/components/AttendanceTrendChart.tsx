@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarCheck2, Info, RotateCcw } from "lucide-react";
+import { CalendarCheck2, RotateCcw } from "lucide-react";
 import { useState } from "react";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { type AttendanceTrendItem, useAttendanceTrend } from "@/features/statistics";
@@ -144,11 +144,6 @@ export function AttendanceTrendChart({ data: initialData = [], isLoading = false
             <span className="font-semibold text-foreground">A</span>
             <span className="text-muted-foreground">(Absen)</span>
           </div>
-        </div>
-
-        <div className="flex items-center gap-1 text-[11px] text-muted-foreground">
-          <Info size={12} className="shrink-0" />
-          <span>BR-13: Presensi = (H + T) / Total</span>
         </div>
       </div>
     </div>

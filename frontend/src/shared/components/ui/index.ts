@@ -14,6 +14,8 @@ export {
   AlertDialogCancel,
 } from "./alert-dialog";
 export { Avatar, AvatarRoot, AvatarImage, AvatarFallback } from "./avatar";
+export { AvatarUpload } from "./AvatarUpload";
+export { ImageCropModal } from "./ImageCropModal";
 export { Badge, badgeVariants } from "./badge";
 export { Button, buttonVariants } from "./button";
 export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent } from "./card";

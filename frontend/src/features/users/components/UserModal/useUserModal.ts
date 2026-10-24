@@ -22,20 +22,26 @@ export const useUserModal = ({ isOpen, onClose, user }: Params) => {
     register,
     handleSubmit,
     reset,
+    watch,
+    setValue,
     setError,
     formState: { errors },
   } = useForm<UserModalInput, unknown, UserModalOutput>({ resolver: zodResolver(userModalSchema) });
 
   useEffect(() => {
     if (isOpen) {
-      reset(isEditing ? { name: user.name, email: user.email } : {});
+      reset(
+        isEditing
+          ? { name: user.name, email: user.email, avatarUrl: user.avatarUrl ?? null }
+          : { name: "", email: "", avatarUrl: null },
+      );
     }
   }, [isOpen, isEditing, user, reset]);
 
   const onSubmit = (data: UserModalInput) => {
     if (isEditing) {
       updateUser.mutate(
-        { id: user.id, payload: { name: data.name, email: data.email } },
+        { id: user.id, payload: { name: data.name, email: data.email, avatarUrl: data.avatarUrl ?? null } },
         {
           onSuccess: () => {
             toast.success("User updated", { description: data.name });
@@ -47,7 +53,7 @@ export const useUserModal = ({ isOpen, onClose, user }: Params) => {
       );
     } else {
       createUser.mutate(
-        { name: data.name, email: data.email },
+        { name: data.name, email: data.email, avatarUrl: data.avatarUrl ?? null },
         {
           onSuccess: () => {
             toast.success("Invite sent", { description: `Invitation email sent to ${data.email}` });
@@ -64,6 +70,8 @@ export const useUserModal = ({ isOpen, onClose, user }: Params) => {
     isEditing,
     handleSubmit,
     onSubmit,
+    watch,
+    setValue,
     errors,
     register,
     isSubmitting: isEditing ? updateUser.isPending : createUser.isPending,

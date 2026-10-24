@@ -20,7 +20,7 @@ const ActivityRow = memo(function ActivityRow({ log }: { log: RecentActivityItem
 
   return (
     <div className="flex items-center gap-3 px-5 py-3 border-t border-border first:border-t-0">
-      <Avatar name={displayName} size={28} />
+      <Avatar name={displayName} src={log.userAvatarUrl} size={28} />
       <div className="flex-1 min-w-0">
         <div className="text-[13px] leading-snug">
           <span className="font-semibold">{displayName}</span>

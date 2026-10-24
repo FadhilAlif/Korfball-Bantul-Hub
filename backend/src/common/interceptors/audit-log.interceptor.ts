@@ -27,6 +27,7 @@ const SENSITIVE_KEYS = new Set([
   "secret",
   "accessToken",
   "refreshToken",
+  "base64Data",
 ]);
 
 function sanitizeDetails(payload: unknown): Record<string, unknown> | null {

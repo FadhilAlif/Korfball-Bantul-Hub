@@ -117,16 +117,16 @@ export function MatchDetailPage({ matchId }: MatchDetailPageProps) {
   return (
     <div className="flex flex-col gap-6">
       {/* Top back navigation & quick actions */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <Link
           href="/matches"
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors shrink-0"
         >
           <ArrowLeft size={14} />
           <span>Kembali ke Daftar Pertandingan</span>
         </Link>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {!isFinished && canEditMatch && (
             <Link
               href={`/matches/${match.id}/edit`}
@@ -202,40 +202,44 @@ export function MatchDetailPage({ matchId }: MatchDetailPageProps) {
         </div>
 
         {/* Big Scoreboard */}
-        <div className="flex items-center justify-between gap-4 py-4 px-2 sm:px-8 bg-muted/20 rounded-2xl border border-border/60">
+        <div className="flex items-center justify-between gap-2 sm:gap-4 py-4 px-2 sm:px-8 bg-muted/20 rounded-2xl border border-border/60">
           {/* Home team */}
-          <div className="flex-1 flex items-center justify-end gap-3 text-right">
-            <div>
-              <h2 className="font-bold text-lg sm:text-2xl text-foreground flex items-center justify-end gap-2">
+          <div className="flex-1 min-w-0 flex items-center justify-end gap-2 sm:gap-3 text-right">
+            <div className="min-w-0">
+              <h2 className="font-bold text-base sm:text-2xl text-foreground flex items-center justify-end gap-1.5 sm:gap-2">
                 <span
-                  className="w-3.5 h-3.5 rounded-full inline-block shrink-0"
+                  className="w-2.5 sm:w-3.5 h-2.5 sm:h-3.5 rounded-full inline-block shrink-0"
                   style={{ backgroundColor: match.homeColor || "#FACC15" }}
                 />
-                <span>{match.homeTeamName}</span>
+                <span className="truncate">{match.homeTeamName}</span>
               </h2>
-              <span className="text-xs uppercase font-semibold text-muted-foreground tracking-wider">HOME</span>
+              <span className="text-[10px] sm:text-xs uppercase font-semibold text-muted-foreground tracking-wider">
+                HOME
+              </span>
             </div>
-            <div className="w-14 sm:w-20 h-14 sm:h-20 rounded-2xl bg-card border border-border flex items-center justify-center font-black text-3xl sm:text-4xl text-foreground tabular-nums shadow-xs">
+            <div className="w-12 sm:w-20 h-12 sm:h-20 shrink-0 rounded-2xl bg-card border border-border flex items-center justify-center font-black text-2xl sm:text-4xl text-foreground tabular-nums shadow-xs">
               {match.homeScore}
             </div>
           </div>
 
-          <div className="font-bold text-muted-foreground text-sm uppercase px-2 shrink-0">VS</div>
+          <div className="font-bold text-muted-foreground text-xs sm:text-sm uppercase px-1 sm:px-2 shrink-0">VS</div>
 
           {/* Away team */}
-          <div className="flex-1 flex items-center justify-start gap-3 text-left">
-            <div className="w-14 sm:w-20 h-14 sm:h-20 rounded-2xl bg-card border border-border flex items-center justify-center font-black text-3xl sm:text-4xl text-foreground tabular-nums shadow-xs">
+          <div className="flex-1 min-w-0 flex items-center justify-start gap-2 sm:gap-3 text-left">
+            <div className="w-12 sm:w-20 h-12 sm:h-20 shrink-0 rounded-2xl bg-card border border-border flex items-center justify-center font-black text-2xl sm:text-4xl text-foreground tabular-nums shadow-xs">
               {match.awayScore}
             </div>
-            <div>
-              <h2 className="font-bold text-lg sm:text-2xl text-foreground flex items-center justify-start gap-2">
-                <span>{match.awayTeamName}</span>
+            <div className="min-w-0">
+              <h2 className="font-bold text-base sm:text-2xl text-foreground flex items-center justify-start gap-1.5 sm:gap-2">
+                <span className="truncate">{match.awayTeamName}</span>
                 <span
-                  className="w-3.5 h-3.5 rounded-full inline-block shrink-0"
+                  className="w-2.5 sm:w-3.5 h-2.5 sm:h-3.5 rounded-full inline-block shrink-0"
                   style={{ backgroundColor: match.awayColor || "#3B82F6" }}
                 />
               </h2>
-              <span className="text-xs uppercase font-semibold text-muted-foreground tracking-wider">AWAY</span>
+              <span className="text-[10px] sm:text-xs uppercase font-semibold text-muted-foreground tracking-wider">
+                AWAY
+              </span>
             </div>
           </div>
         </div>
@@ -243,9 +247,9 @@ export function MatchDetailPage({ matchId }: MatchDetailPageProps) {
         {/* Action button row */}
         <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
           {isScheduled && canRecord && (
-            <Button onClick={handleStart} className="gap-2 px-6">
+            <Button onClick={handleStart} className="gap-2 px-6 w-full sm:w-auto">
               <Play size={16} />
-              <span>Mulai Pertandingan & Buka Live Recorder</span>
+              <span className="text-center">Mulai Pertandingan & Buka Live Recorder</span>
             </Button>
           )}
 
@@ -255,7 +259,7 @@ export function MatchDetailPage({ matchId }: MatchDetailPageProps) {
               className={buttonVariants({
                 variant: "default",
                 size: "default",
-                className: "bg-red-600 hover:bg-red-700 text-white gap-2 px-6 shadow-md",
+                className: "bg-red-600 hover:bg-red-700 text-white gap-2 px-6 shadow-md w-full sm:w-auto",
               })}
             >
               <Play size={16} fill="currentColor" />
@@ -269,7 +273,7 @@ export function MatchDetailPage({ matchId }: MatchDetailPageProps) {
               size="sm"
               onClick={handleReopen}
               disabled={reopenMatchMutation.isPending}
-              className="gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+              className="gap-1.5 text-xs text-muted-foreground hover:text-foreground w-full sm:w-auto"
             >
               <RotateCcw size={13} />
               <span>Buka Kembali Match (Reopen)</span>
@@ -299,10 +303,10 @@ export function MatchDetailPage({ matchId }: MatchDetailPageProps) {
       </div>
 
       {/* Lineup Management Section */}
-      <div className="flex flex-col gap-3">
-        <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 min-w-0 w-full max-w-full">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
           <h3 className="font-bold text-lg text-foreground flex items-center gap-2">
-            <Users size={20} className="text-primary" />
+            <Users size={20} className="text-primary shrink-0" />
             <span>Susunan Pemain (Lineup)</span>
           </h3>
           <span className="text-xs text-muted-foreground">

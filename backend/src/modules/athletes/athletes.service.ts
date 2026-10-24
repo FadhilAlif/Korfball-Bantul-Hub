@@ -32,6 +32,7 @@ export interface AthleteItem {
   userEmail: string | null;
   fullName: string;
   nickname: string | null;
+  photoUrl: string | null;
   sex: Sex;
   jerseyNumber: number | null;
   birthDate: string | null;
@@ -85,6 +86,7 @@ export class AthletesService {
         teamShortName: teams.shortName,
         teamIsInternal: teams.isInternal,
         userEmail: users.email,
+        userAvatarUrl: users.avatarUrl,
       })
       .from(athletes)
       .innerJoin(teams, eq(athletes.teamId, teams.id))
@@ -108,6 +110,7 @@ export class AthletesService {
       userEmail: r.userEmail ?? null,
       fullName: r.athlete.fullName,
       nickname: r.athlete.nickname,
+      photoUrl: r.athlete.photoUrl ?? r.userAvatarUrl ?? null,
       sex: r.athlete.sex,
       jerseyNumber: r.athlete.jerseyNumber,
       birthDate: r.athlete.birthDate,
@@ -136,6 +139,7 @@ export class AthletesService {
         teamShortName: teams.shortName,
         teamIsInternal: teams.isInternal,
         userEmail: users.email,
+        userAvatarUrl: users.avatarUrl,
       })
       .from(athletes)
       .innerJoin(teams, eq(athletes.teamId, teams.id))
@@ -161,6 +165,7 @@ export class AthletesService {
       userEmail: row.userEmail ?? null,
       fullName: row.athlete.fullName,
       nickname: row.athlete.nickname,
+      photoUrl: row.athlete.photoUrl ?? row.userAvatarUrl ?? null,
       sex: row.athlete.sex,
       jerseyNumber: row.athlete.jerseyNumber,
       birthDate: row.athlete.birthDate,
@@ -199,6 +204,7 @@ export class AthletesService {
         userId: input.userId ?? null,
         fullName: trimmedFullName,
         nickname: resolvedNickname,
+        photoUrl: input.photoUrl ?? null,
         sex: input.sex,
         jerseyNumber: input.jerseyNumber ?? null,
         birthDate: input.birthDate ?? null,
@@ -251,6 +257,7 @@ export class AthletesService {
         ...(input.teamId !== undefined ? { teamId: input.teamId } : {}),
         ...(input.fullName !== undefined ? { fullName: input.fullName.trim() } : {}),
         ...(input.nickname !== undefined ? { nickname: input.nickname ? input.nickname.trim() : null } : {}),
+        ...(input.photoUrl !== undefined ? { photoUrl: input.photoUrl } : {}),
         ...(input.sex !== undefined ? { sex: input.sex } : {}),
         ...(input.jerseyNumber !== undefined ? { jerseyNumber: input.jerseyNumber } : {}),
         ...(input.birthDate !== undefined ? { birthDate: input.birthDate } : {}),
@@ -259,6 +266,10 @@ export class AthletesService {
         ...(input.notes !== undefined ? { notes: input.notes ? input.notes.trim() : null } : {}),
       })
       .where(eq(athletes.id, athleteId));
+
+    if (input.photoUrl !== undefined && resultingUserId !== null) {
+      await this.db.update(users).set({ avatarUrl: input.photoUrl }).where(eq(users.id, resultingUserId));
+    }
 
     if (existing.userId && existing.userId !== resultingUserId) {
       await this.permissionsCacheService?.invalidateUser(existing.userId);
@@ -285,11 +296,17 @@ export class AthletesService {
       throw new NotFoundException("Atlet tidak ditemukan.");
     }
 
-    await this.validateUserLinking(row.teamIsInternal, userId, athleteId);
+    const linkedUser = await this.validateUserLinking(row.teamIsInternal, userId, athleteId);
 
     const previousUserId = row.athlete.userId;
 
     await this.db.update(athletes).set({ userId }).where(eq(athletes.id, athleteId));
+
+    if (row.athlete.photoUrl && !linkedUser.avatarUrl) {
+      await this.db.update(users).set({ avatarUrl: row.athlete.photoUrl }).where(eq(users.id, userId));
+    } else if (!row.athlete.photoUrl && linkedUser.avatarUrl) {
+      await this.db.update(athletes).set({ photoUrl: linkedUser.avatarUrl }).where(eq(athletes.id, athleteId));
+    }
 
     if (previousUserId && previousUserId !== userId) {
       await this.permissionsCacheService?.invalidateUser(previousUserId);
@@ -363,14 +380,18 @@ export class AthletesService {
     }
   }
 
-  private async validateUserLinking(teamIsInternal: boolean, userId: number, excludeAthleteId?: number): Promise<void> {
+  private async validateUserLinking(
+    teamIsInternal: boolean,
+    userId: number,
+    excludeAthleteId?: number,
+  ): Promise<{ id: number; avatarUrl?: string | null }> {
     // BR-01: Hanya atlet tim internal yang dapat ditautkan ke akun user
     if (!teamIsInternal) {
       throw new BadRequestException("Atlet bukan anggota tim internal.");
     }
 
     const [user] = await this.db
-      .select({ id: users.id })
+      .select({ id: users.id, avatarUrl: users.avatarUrl })
       .from(users)
       .where(and(eq(users.id, userId), isNull(users.deletedAt)))
       .limit(1);
@@ -394,6 +415,8 @@ export class AthletesService {
     if (conflict) {
       throw new ConflictException("Akun sudah tertaut ke atlet lain.");
     }
+
+    return user;
   }
 
   private async compute30DayAttendanceRates(athleteIds: number[]): Promise<Map<number, number | null>> {

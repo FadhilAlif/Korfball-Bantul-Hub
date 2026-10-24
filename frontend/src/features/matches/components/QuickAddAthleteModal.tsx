@@ -38,6 +38,7 @@ export function QuickAddAthleteModal({ open, teamId, teamName, onSuccess, onClos
       {
         fullName: fullName.trim(),
         nickname: nickname.trim() || null,
+        photoUrl: null,
         teamId,
         sex,
         jerseyNumber,

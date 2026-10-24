@@ -3,6 +3,7 @@ export interface AuditLog {
   userId: number | null;
   userName: string | null;
   userEmail: string | null;
+  userAvatarUrl?: string | null;
   action: string;
   resourceType: string;
   resourceId: number | null;

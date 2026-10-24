@@ -25,6 +25,7 @@ export const athletes = pgTable(
     userId: integer("user_id").references(() => users.id, { onDelete: "set null" }),
     fullName: varchar("full_name", { length: 100 }).notNull(),
     nickname: varchar("nickname", { length: 30 }),
+    photoUrl: varchar("photo_url", { length: 500 }),
     sex: sexEnum("sex").notNull(),
     jerseyNumber: smallint("jersey_number"),
     birthDate: date("birth_date"),

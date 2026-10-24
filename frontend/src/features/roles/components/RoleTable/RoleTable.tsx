@@ -159,7 +159,13 @@ const RoleRow = memo(function RoleRow({
   );
 });
 
-function AvatarStack({ users, max = 3 }: { users: { id: number; name: string }[]; max?: number }) {
+function AvatarStack({
+  users,
+  max = 3,
+}: {
+  users: { id: number; name: string; avatarUrl?: string | null }[];
+  max?: number;
+}) {
   const visible = users.slice(0, max);
   const overflow = Math.max(0, users.length - max);
 
@@ -173,7 +179,7 @@ function AvatarStack({ users, max = 3 }: { users: { id: number; name: string }[]
           className="rounded-full ring-2 ring-card"
           style={{ marginLeft: i === 0 ? 0 : -8, position: "relative", zIndex: 10 - i }}
         >
-          <Avatar name={u.name} size={24} />
+          <Avatar name={u.name} src={u.avatarUrl} size={24} />
         </span>
       ))}
       {overflow > 0 && (

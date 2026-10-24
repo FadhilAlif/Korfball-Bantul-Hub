@@ -1,6 +1,6 @@
-# RBAC Boilerplate — Frontend (`frontend/`)
+# Korfball Hub — Frontend (`frontend/`)
 
-Next.js 16 (App Router) admin dashboard for the **RBAC Boilerplate**, built with React 19, TypeScript, Tailwind CSS v4, and **Shadcn UI** (Radix UI primitives + CVA).
+Aplikasi web responsif dan Progressive Web App (PWA) untuk **Korfball Hub** (Presensi Kehadiran & Live Game Statistics Korfball Bantul), dibangun dengan Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS v4, dan **Shadcn UI** (Radix UI primitives + CVA).
 
 ## Tech Stack
 

@@ -2,6 +2,7 @@ export interface PlayerLeaderboardItem {
   athleteId: number;
   athleteName: string;
   nickname: string | null;
+  photoUrl?: string | null;
   sex: "MALE" | "FEMALE";
   sexLabel: "L" | "P";
   jerseyNumber: number | null;

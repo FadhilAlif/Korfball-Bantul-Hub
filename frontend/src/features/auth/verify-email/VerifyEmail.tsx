@@ -18,7 +18,7 @@ const LoadingState = memo(function LoadingState() {
     <AuthShell>
       <div className="flex flex-col items-center gap-4 py-8">
         <Spinner size="lg" />
-        <p className="text-sm text-muted-foreground">Verifying your email…</p>
+        <p className="text-sm text-muted-foreground">Memverifikasi email Anda…</p>
       </div>
     </AuthShell>
   );
@@ -30,11 +30,11 @@ const NoTokenState = memo(function NoTokenState() {
       <AuthStatusCard
         variant="destructive"
         icon={<AlertCircle size={16} />}
-        title="Invalid link"
-        description="This verification link is missing a token. Please use the link from your email."
+        title="Tautan Tidak Valid"
+        description="Tautan verifikasi ini tidak memiliki token. Silakan gunakan tautan dari email resmi Anda."
       >
         <Button variant="outline" asChild>
-          <Link href="/login">Go to sign in</Link>
+          <Link href="/login">Kembali ke halaman masuk</Link>
         </Button>
       </AuthStatusCard>
     </AuthShell>
@@ -51,11 +51,11 @@ const ErrorState = memo(function ErrorState({ error }: ErrorStateProps) {
       <AuthStatusCard
         variant="destructive"
         icon={<AlertCircle size={16} />}
-        title="Verification failed"
+        title="Verifikasi Gagal"
         description={getErrorMessage(error)}
       >
         <Button variant="outline" asChild>
-          <Link href="/login">Go to sign in</Link>
+          <Link href="/login">Kembali ke halaman masuk</Link>
         </Button>
       </AuthStatusCard>
     </AuthShell>
@@ -68,8 +68,8 @@ const SuccessState = memo(function SuccessState() {
       <AuthStatusCard
         variant="success"
         icon={<Check size={16} />}
-        title="Email verified!"
-        description="Redirecting you to the dashboard…"
+        title="Email Berhasil Diverifikasi!"
+        description="Mengalihkan Anda ke Dashboard…"
       />
     </AuthShell>
   );

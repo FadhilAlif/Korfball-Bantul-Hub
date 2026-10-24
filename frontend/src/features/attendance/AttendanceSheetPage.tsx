@@ -272,7 +272,7 @@ export function AttendanceSheetPage({ sessionId }: AttendanceSheetPageProps) {
               }`}
             >
               <div className="flex items-center gap-3 min-w-0">
-                <Avatar name={row.fullName} size={36} />
+                <Avatar name={row.fullName} src={row.photoUrl} size={36} />
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-semibold text-sm">{row.fullName}</span>

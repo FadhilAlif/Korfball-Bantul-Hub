@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import * as AvatarPrimitive from "@radix-ui/react-avatar";
+import { resolveStorageUrl } from "@/shared/lib/storage";
 import { cn } from "@/shared/lib/utils";
 
 function hueFromString(s: string): number {
@@ -54,7 +55,7 @@ AvatarFallback.displayName = AvatarPrimitive.Fallback.displayName;
 interface ConvenientAvatarProps {
   name: string;
   size?: number;
-  src?: string;
+  src?: string | null;
   className?: string;
 }
 
@@ -66,6 +67,7 @@ const Avatar = React.forwardRef<React.ComponentRef<typeof AvatarPrimitive.Root>,
   if ("name" in props && typeof props.name === "string") {
     const { name, size = 32, src, className, ...rest } = props as ConvenientAvatarProps;
     const hue = hueFromString(name);
+    const resolvedSrc = resolveStorageUrl(src);
 
     return (
       <AvatarPrimitive.Root
@@ -84,8 +86,10 @@ const Avatar = React.forwardRef<React.ComponentRef<typeof AvatarPrimitive.Root>,
         }}
         {...rest}
       >
-        {src && <AvatarPrimitive.Image src={src} alt={name} className="aspect-square h-full w-full object-cover" />}
-        <AvatarPrimitive.Fallback delayMs={src ? 600 : 0}>{getInitials(name)}</AvatarPrimitive.Fallback>
+        {resolvedSrc && (
+          <AvatarPrimitive.Image src={resolvedSrc} alt={name} className="aspect-square h-full w-full object-cover" />
+        )}
+        <AvatarPrimitive.Fallback delayMs={resolvedSrc ? 600 : 0}>{getInitials(name)}</AvatarPrimitive.Fallback>
       </AvatarPrimitive.Root>
     );
   }

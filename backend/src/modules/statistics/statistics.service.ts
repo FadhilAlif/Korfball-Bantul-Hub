@@ -3,7 +3,7 @@ import { and, desc, eq, gte, inArray, isNull, lte, or } from "drizzle-orm";
 import type { DrizzleDatabase } from "../../database/connection.js";
 import { DRIZZLE_DB } from "../../database/database.module.js";
 import type { MatchEventType, MatchSide, Sex } from "../../database/schema/enums.js";
-import { athletes, matchEvents, matchPlayers, matches, teams } from "../../database/schema/index.js";
+import { athletes, matchEvents, matchPlayers, matches, teams, users } from "../../database/schema/index.js";
 import { type TableSheet, buildWorkbook } from "../../lib/exporters/table-workbook.js";
 import {
   type CalculatorEvent,
@@ -18,6 +18,7 @@ export interface PlayerLeaderboardItem {
   athleteId: number;
   athleteName: string;
   nickname: string | null;
+  photoUrl: string | null;
   sex: Sex;
   sexLabel: "L" | "P";
   jerseyNumber: number | null;
@@ -263,11 +264,14 @@ export class StatisticsService {
         isStarter: matchPlayers.isStarter,
         athleteName: athletes.fullName,
         nickname: athletes.nickname,
+        photoUrl: athletes.photoUrl,
+        userAvatarUrl: users.avatarUrl,
         sex: athletes.sex,
         athleteTeamId: athletes.teamId,
       })
       .from(matchPlayers)
       .innerJoin(athletes, eq(matchPlayers.athleteId, athletes.id))
+      .leftJoin(users, and(eq(athletes.userId, users.id), isNull(users.deletedAt)))
       .where(inArray(matchPlayers.matchId, matchIds));
 
     // Group players by matchId
@@ -327,6 +331,7 @@ export class StatisticsService {
       athleteId: number;
       athleteName: string;
       nickname: string | null;
+      photoUrl: string | null;
       sex: Sex;
       jerseyNumber: number | null;
       teamId: number;
@@ -411,6 +416,7 @@ export class StatisticsService {
             athleteId: rawPl.athleteId,
             athleteName: rawPl.athleteName,
             nickname: rawPl.nickname,
+            photoUrl: rawPl.photoUrl ?? rawPl.userAvatarUrl ?? null,
             sex: rawPl.sex as Sex,
             jerseyNumber: rawPl.jerseyNumber,
             teamId: rawPl.athleteTeamId,
@@ -488,6 +494,7 @@ export class StatisticsService {
         athleteId: p.athleteId,
         athleteName: p.athleteName,
         nickname: p.nickname,
+        photoUrl: p.photoUrl,
         sex: p.sex,
         sexLabel: p.sex === "MALE" ? "L" : "P",
         jerseyNumber: p.jerseyNumber,
@@ -574,6 +581,8 @@ export class StatisticsService {
         id: athletes.id,
         fullName: athletes.fullName,
         nickname: athletes.nickname,
+        photoUrl: athletes.photoUrl,
+        userAvatarUrl: users.avatarUrl,
         sex: athletes.sex,
         jerseyNumber: athletes.jerseyNumber,
         teamId: athletes.teamId,
@@ -581,6 +590,7 @@ export class StatisticsService {
         userId: athletes.userId,
       })
       .from(athletes)
+      .leftJoin(users, and(eq(athletes.userId, users.id), isNull(users.deletedAt)))
       .where(and(eq(athletes.id, athleteId), isNull(athletes.deletedAt)))
       .limit(1);
 
@@ -622,10 +632,13 @@ export class StatisticsService {
       .where(and(eq(matchPlayers.athleteId, athleteId), eq(matches.status, "FINISHED"), isNull(matches.deletedAt)))
       .orderBy(desc(matches.scheduledAt));
 
+    const resolvedPhotoUrl = athlete.photoUrl ?? athlete.userAvatarUrl ?? null;
+
     const defaultSummary: PlayerLeaderboardItem = {
       athleteId: athlete.id,
       athleteName: athlete.fullName,
       nickname: athlete.nickname,
+      photoUrl: resolvedPhotoUrl,
       sex: athlete.sex as Sex,
       sexLabel: athlete.sex === "MALE" ? "L" : "P",
       jerseyNumber: athlete.jerseyNumber,
@@ -672,7 +685,7 @@ export class StatisticsService {
           nickname: athlete.nickname,
           sex: athlete.sex as Sex,
           jerseyNumber: athlete.jerseyNumber,
-          photoUrl: null,
+          photoUrl: resolvedPhotoUrl,
           teamId: athlete.teamId,
           teamName,
           status: athlete.status,
@@ -941,6 +954,7 @@ export class StatisticsService {
       athleteId: athlete.id,
       athleteName: athlete.fullName,
       nickname: athlete.nickname,
+      photoUrl: resolvedPhotoUrl,
       sex: athlete.sex as Sex,
       sexLabel: athlete.sex === "MALE" ? "L" : "P",
       jerseyNumber: athlete.jerseyNumber,
@@ -986,7 +1000,7 @@ export class StatisticsService {
         nickname: athlete.nickname,
         sex: athlete.sex as Sex,
         jerseyNumber: athlete.jerseyNumber,
-        photoUrl: null,
+        photoUrl: resolvedPhotoUrl,
         teamId: athlete.teamId,
         teamName,
         status: athlete.status,

@@ -174,7 +174,7 @@ export function AttendanceSummaryPage() {
               <TableRow key={a.athleteId}>
                 <TableCell>
                   <div className="flex items-center gap-2.5">
-                    <Avatar name={a.fullName} size={30} />
+                    <Avatar name={a.fullName} src={a.photoUrl} size={30} />
                     <div>
                       <div className="font-semibold text-[13.5px]">{a.fullName}</div>
                       {a.jerseyNumber !== null && (

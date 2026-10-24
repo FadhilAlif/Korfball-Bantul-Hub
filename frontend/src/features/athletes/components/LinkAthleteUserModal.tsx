@@ -113,7 +113,7 @@ export function LinkAthleteUserModal({ isOpen, onClose, athlete }: LinkAthleteUs
             return (
               <div key={user.id} className="flex items-center justify-between gap-3 p-3 hover:bg-muted/40">
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <Avatar name={user.name} size={28} />
+                  <Avatar name={user.name} src={user.avatarUrl} size={28} />
                   <div className="min-w-0">
                     <div className="text-sm font-medium truncate">{user.name}</div>
                     <div className="text-xs text-muted-foreground truncate">{user.email}</div>

@@ -18,7 +18,7 @@ export function getDatabaseConnectionString(): string {
   const port = process.env.DB_PORT || "5432";
   const user = process.env.DB_USER || "postgres";
   const password = process.env.DB_PASSWORD || "";
-  const name = process.env.DB_NAME || "rbac_db";
+  const name = process.env.DB_NAME || "korfball_hub";
   const ssl = process.env.DB_SSL === "true" ? "?sslmode=require" : "";
   return `postgres://${encodeURIComponent(user)}:${encodeURIComponent(password)}@${host}:${port}/${name}${ssl}`;
 }

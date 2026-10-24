@@ -52,7 +52,7 @@ export const Scoreboard = memo(function Scoreboard({
   const hasNextPeriod = currentPeriod < totalPeriods;
 
   return (
-    <header className="sticky top-0 z-30 bg-card/95 backdrop-blur-md border-b border-border shadow-xs px-3 sm:px-6 py-2 sm:py-3 transition-colors">
+    <header className="sticky -top-4 md:-top-6 z-30 bg-card/95 backdrop-blur-md border-b border-border shadow-xs px-3 sm:px-6 py-2.5 sm:py-3.5 transition-colors">
       <div className="flex flex-col gap-2">
         {/* Top status bar */}
         <div className="flex items-center justify-between text-xs text-muted-foreground">

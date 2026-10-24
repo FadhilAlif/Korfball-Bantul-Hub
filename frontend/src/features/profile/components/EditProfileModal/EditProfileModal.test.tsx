@@ -16,6 +16,8 @@ const baseHookReturn = {
     fn({});
   },
   onSubmit: vi.fn(),
+  watch: vi.fn().mockReturnValue(""),
+  setValue: vi.fn(),
   errors: {},
   isSubmitting: false,
 };
@@ -27,7 +29,7 @@ describe("EditProfileModal", () => {
 
   it("renders Full name and Email fields", () => {
     render(<EditProfileModal isOpen={true} onClose={vi.fn()} />);
-    expect(screen.getByLabelText(/full name/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/nama lengkap|full name/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
   });
 

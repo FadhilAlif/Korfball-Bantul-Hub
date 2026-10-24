@@ -12,6 +12,7 @@ export interface ModalProps {
   maxWidth?: "sm" | "md" | "lg" | "xl" | "2xl" | "3xl";
   className?: string;
   bodyClassName?: string;
+  overlayClassName?: string;
 }
 
 const maxWidthClass = {
@@ -23,7 +24,16 @@ const maxWidthClass = {
   "3xl": "sm:max-w-5xl",
 };
 
-export function Modal({ isOpen, onClose, title, children, maxWidth = "md", className, bodyClassName }: ModalProps) {
+export function Modal({
+  isOpen,
+  onClose,
+  title,
+  children,
+  maxWidth = "md",
+  className,
+  bodyClassName,
+  overlayClassName,
+}: ModalProps) {
   return (
     <Dialog
       open={isOpen}
@@ -32,6 +42,7 @@ export function Modal({ isOpen, onClose, title, children, maxWidth = "md", class
       }}
     >
       <DialogContent
+        overlayClassName={overlayClassName}
         className={cn(maxWidthClass[maxWidth], "max-h-[92vh] flex flex-col p-0 gap-0 overflow-hidden", className)}
       >
         <DialogHeader className="px-5 sm:px-6 py-3.5 sm:py-4 border-b border-border shrink-0 pr-12 text-left">

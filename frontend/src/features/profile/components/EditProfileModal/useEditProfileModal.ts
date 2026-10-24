@@ -21,13 +21,19 @@ export function useEditProfileModal({ isOpen, onClose }: Params) {
     register,
     handleSubmit,
     reset,
+    watch,
+    setValue,
     setError,
     formState: { errors },
   } = useForm<EditProfileInput>({ resolver: zodResolver(editProfileSchema) });
 
   useEffect(() => {
     if (isOpen && user) {
-      reset({ name: user.name, email: user.email });
+      reset({
+        name: user.name,
+        email: user.email,
+        avatarUrl: user.avatarUrl ?? user.athlete?.photoUrl ?? null,
+      });
     }
   }, [isOpen, user, reset]);
 
@@ -50,6 +56,8 @@ export function useEditProfileModal({ isOpen, onClose }: Params) {
     register,
     handleSubmit,
     onSubmit,
+    watch,
+    setValue,
     errors,
     isSubmitting: mutation.isPending,
   };

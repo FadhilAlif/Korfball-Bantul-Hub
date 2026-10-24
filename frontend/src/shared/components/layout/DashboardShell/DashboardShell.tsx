@@ -36,7 +36,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
         <div className="print:hidden">
           <Header onToggleSidebar={toggleCollapsed} onOpenMobileNav={openMobile} />
         </div>
-        <main className="flex-1 overflow-y-auto p-4 pb-22 md:p-6 md:pb-6 print:p-0 print:m-0 print:overflow-visible print:block print:h-auto">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden min-w-0 w-full max-w-full p-4 pb-22 md:p-6 md:pb-6 print:p-0 print:m-0 print:overflow-visible print:block print:h-auto">
           {children}
         </main>
         <div className="print:hidden">

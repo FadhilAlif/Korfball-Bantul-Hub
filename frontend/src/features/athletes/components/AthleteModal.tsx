@@ -5,7 +5,7 @@ import { Calendar, Hash, User } from "lucide-react";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import type { TeamItem } from "@/features/teams/types";
-import { Alert, Button, FormField, Input, Modal, Select } from "@/shared/components/ui";
+import { Alert, AvatarUpload, Button, FormField, Input, Modal, Select } from "@/shared/components/ui";
 import { getErrorMessage } from "@/shared/lib/api-error";
 import { toast } from "@/shared/lib/toast";
 import { useCreateAthlete, useUpdateAthlete } from "../hooks";
@@ -40,6 +40,7 @@ export function AthleteModal({ isOpen, onClose, athlete, teams }: AthleteModalPr
       teamId: defaultTeamId,
       fullName: "",
       nickname: "",
+      photoUrl: "",
       sex: "FEMALE",
       jerseyNumber: "",
       birthDate: "",
@@ -50,6 +51,8 @@ export function AthleteModal({ isOpen, onClose, athlete, teams }: AthleteModalPr
 
   const selectedTeamId = watch("teamId");
   const selectedSex = watch("sex");
+  const watchedPhotoUrl = watch("photoUrl");
+  const watchedFullName = watch("fullName") || "Atlet";
 
   useEffect(() => {
     if (isOpen) {
@@ -59,6 +62,7 @@ export function AthleteModal({ isOpen, onClose, athlete, teams }: AthleteModalPr
               teamId: athlete.teamId,
               fullName: athlete.fullName,
               nickname: athlete.nickname ?? "",
+              photoUrl: athlete.photoUrl ?? "",
               sex: athlete.sex,
               jerseyNumber: athlete.jerseyNumber !== null ? String(athlete.jerseyNumber) : "",
               birthDate: athlete.birthDate ?? "",
@@ -69,6 +73,7 @@ export function AthleteModal({ isOpen, onClose, athlete, teams }: AthleteModalPr
               teamId: defaultTeamId,
               fullName: "",
               nickname: "",
+              photoUrl: "",
               sex: "FEMALE",
               jerseyNumber: "",
               birthDate: "",
@@ -114,6 +119,16 @@ export function AthleteModal({ isOpen, onClose, athlete, teams }: AthleteModalPr
         </p>
 
         {errors.root && <Alert message={errors.root.message ?? "Terjadi kesalahan"} />}
+
+        <AvatarUpload
+          name={watchedFullName}
+          value={watchedPhotoUrl}
+          onChange={(url) => setValue("photoUrl", url ?? "", { shouldDirty: true })}
+          folder="athletes"
+          size={76}
+          label="Foto Atlet (Opsional)"
+          helperText="Foto atlet akan tampil di kartu pemain, badge pertandingan, dan leaderboard statistik."
+        />
 
         <FormField label="Tim" htmlFor="athlete-team" required error={errors.teamId?.message}>
           <Select

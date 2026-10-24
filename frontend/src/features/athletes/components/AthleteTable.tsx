@@ -60,8 +60,13 @@ export const AthleteTable = memo(function AthleteTable({
           <div key={athlete.id} className="rounded-xl border border-border bg-card p-4 shadow-xs flex flex-col gap-3">
             <div className="flex items-start justify-between gap-2">
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-9 h-9 rounded-lg bg-primary/15 text-primary font-mono font-bold text-sm flex items-center justify-center shrink-0">
-                  {athlete.jerseyNumber !== null ? `#${athlete.jerseyNumber}` : "—"}
+                <div className="relative shrink-0">
+                  <Avatar name={athlete.fullName} src={athlete.photoUrl} size={40} className="rounded-xl" />
+                  {athlete.jerseyNumber !== null && (
+                    <span className="absolute -bottom-1 -right-1 px-1 py-0.2 bg-background border border-border rounded text-[10px] font-mono font-bold text-primary shadow-xs">
+                      #{athlete.jerseyNumber}
+                    </span>
+                  )}
                 </div>
                 <div className="min-w-0">
                   <div className="font-semibold text-sm truncate">{athlete.fullName}</div>
@@ -188,7 +193,7 @@ export const AthleteTable = memo(function AthleteTable({
 
                 <TableCell>
                   <div className="flex items-center gap-2.5">
-                    <Avatar name={athlete.fullName} size={32} />
+                    <Avatar name={athlete.fullName} src={athlete.photoUrl} size={32} />
                     <div>
                       <div className="font-semibold text-[13.5px]">{athlete.fullName}</div>
                       {athlete.nickname && (

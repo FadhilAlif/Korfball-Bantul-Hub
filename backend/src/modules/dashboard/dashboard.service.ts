@@ -44,6 +44,7 @@ export interface DashboardStatsDto {
     resourceType: string;
     resourceId: number | null;
     userName: string | null;
+    userAvatarUrl?: string | null;
     createdAt: string;
   }[];
 }
@@ -116,6 +117,7 @@ export class DashboardService {
           resourceType: auditLogs.resourceType,
           resourceId: auditLogs.resourceId,
           userName: users.fullName,
+          userAvatarUrl: users.avatarUrl,
           createdAt: auditLogs.createdAt,
         })
         .from(auditLogs)
@@ -141,6 +143,7 @@ export class DashboardService {
         resourceType: log.resourceType,
         resourceId: log.resourceId,
         userName: log.userName,
+        userAvatarUrl: log.userAvatarUrl ?? null,
         createdAt: log.createdAt.toISOString(),
       })),
     };

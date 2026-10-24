@@ -50,16 +50,16 @@ export function BoxScorePage({ matchId }: BoxScorePageProps) {
   return (
     <div className="flex flex-col gap-6">
       {/* Top back navigation & export actions */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <Link
           href={`/matches/${matchId}`}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground transition-colors shrink-0"
         >
           <ArrowLeft size={14} />
           <span>Kembali ke Detail Pertandingan</span>
         </Link>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {isLive && (
             <Badge variant="default" className="bg-red-500 text-white animate-pulse gap-1 text-xs">
               <span className="w-1.5 h-1.5 rounded-full bg-white inline-block" />
@@ -96,40 +96,40 @@ export function BoxScorePage({ matchId }: BoxScorePageProps) {
           </div>
         </div>
 
-        <div className="flex items-center justify-center gap-6 py-2">
+        <div className="flex items-center justify-center gap-3 sm:gap-6 py-2">
           {/* Home team */}
-          <div className="flex-1 text-right">
-            <h3 className="font-bold text-base sm:text-xl text-foreground flex items-center justify-end gap-2">
+          <div className="flex-1 min-w-0 text-right">
+            <h3 className="font-bold text-sm sm:text-xl text-foreground flex items-center justify-end gap-1.5 sm:gap-2">
               <span
-                className="w-3 h-3 rounded-full inline-block"
+                className="w-2.5 sm:w-3 h-2.5 sm:h-3 rounded-full inline-block shrink-0"
                 style={{ backgroundColor: match?.homeColor || "#FACC15" }}
               />
-              <span>{home.teamName}</span>
+              <span className="truncate">{home.teamName}</span>
             </h3>
-            <span className="text-[11px] text-muted-foreground font-semibold">HOME</span>
+            <span className="text-[10px] sm:text-[11px] text-muted-foreground font-semibold">HOME</span>
           </div>
 
           {/* Big Score */}
-          <div className="font-black text-3xl sm:text-4xl px-4 py-2 bg-muted/60 rounded-2xl border border-border tabular-nums text-foreground">
+          <div className="shrink-0 font-black text-2xl sm:text-4xl px-3 sm:px-4 py-1.5 sm:py-2 bg-muted/60 rounded-2xl border border-border tabular-nums text-foreground">
             {home.pts} - {away.pts}
           </div>
 
           {/* Away team */}
-          <div className="flex-1 text-left">
-            <h3 className="font-bold text-base sm:text-xl text-foreground flex items-center justify-start gap-2">
-              <span>{away.teamName}</span>
+          <div className="flex-1 min-w-0 text-left">
+            <h3 className="font-bold text-sm sm:text-xl text-foreground flex items-center justify-start gap-1.5 sm:gap-2">
+              <span className="truncate">{away.teamName}</span>
               <span
-                className="w-3 h-3 rounded-full inline-block"
+                className="w-2.5 sm:w-3 h-2.5 sm:h-3 rounded-full inline-block shrink-0"
                 style={{ backgroundColor: match?.awayColor || "#3B82F6" }}
               />
             </h3>
-            <span className="text-[11px] text-muted-foreground font-semibold">AWAY</span>
+            <span className="text-[10px] sm:text-[11px] text-muted-foreground font-semibold">AWAY</span>
           </div>
         </div>
 
         {/* Skor Babak Summary Strip */}
-        <div className="overflow-x-auto pt-2 border-t border-border">
-          <table className="w-full text-xs text-center border-collapse">
+        <div className="overflow-x-auto min-w-0 w-full pt-2 border-t border-border">
+          <table className="w-full min-w-[300px] text-xs text-center border-collapse">
             <thead>
               <tr className="text-muted-foreground text-[11px]">
                 <th className="py-1 px-3 text-left">Tim</th>
@@ -170,29 +170,31 @@ export function BoxScorePage({ matchId }: BoxScorePageProps) {
       </div>
 
       {/* Main Statistics Tabs: Home Box Score, Away Box Score, Running Score, Log */}
-      <Tabs defaultValue="home" className="flex flex-col gap-4">
-        <TabsList className="h-10 self-start">
-          <TabsTrigger value="home" className="gap-2 font-bold text-xs">
-            <span
-              className="w-2.5 h-2.5 rounded-full inline-block shrink-0"
-              style={{ backgroundColor: match?.homeColor || "#FACC15" }}
-            />
-            <span>Box Score {home.teamName}</span>
-          </TabsTrigger>
-          <TabsTrigger value="away" className="gap-2 font-bold text-xs">
-            <span
-              className="w-2.5 h-2.5 rounded-full inline-block shrink-0"
-              style={{ backgroundColor: match?.awayColor || "#3B82F6" }}
-            />
-            <span>Box Score {away.teamName}</span>
-          </TabsTrigger>
-          <TabsTrigger value="running" className="text-xs font-semibold">
-            Running Score ({runningScore.length})
-          </TabsTrigger>
-          <TabsTrigger value="logs" className="text-xs font-semibold">
-            Log Sub & Timeout ({logs.length})
-          </TabsTrigger>
-        </TabsList>
+      <Tabs defaultValue="home" className="flex flex-col gap-4 min-w-0 w-full max-w-full">
+        <div className="w-full max-w-full overflow-x-auto pb-1 min-w-0">
+          <TabsList className="inline-flex h-10 w-max min-w-full">
+            <TabsTrigger value="home" className="gap-2 font-bold text-xs whitespace-nowrap">
+              <span
+                className="w-2.5 h-2.5 rounded-full inline-block shrink-0"
+                style={{ backgroundColor: match?.homeColor || "#FACC15" }}
+              />
+              <span>Box Score {home.teamName}</span>
+            </TabsTrigger>
+            <TabsTrigger value="away" className="gap-2 font-bold text-xs whitespace-nowrap">
+              <span
+                className="w-2.5 h-2.5 rounded-full inline-block shrink-0"
+                style={{ backgroundColor: match?.awayColor || "#3B82F6" }}
+              />
+              <span>Box Score {away.teamName}</span>
+            </TabsTrigger>
+            <TabsTrigger value="running" className="text-xs font-semibold whitespace-nowrap">
+              Running Score ({runningScore.length})
+            </TabsTrigger>
+            <TabsTrigger value="logs" className="text-xs font-semibold whitespace-nowrap">
+              Log Sub & Timeout ({logs.length})
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         {/* Tab Home */}
         <TabsContent value="home" className="m-0">
@@ -287,21 +289,21 @@ export function BoxScorePage({ matchId }: BoxScorePageProps) {
 
 function TeamBoxScoreTable({ team }: { team: TeamBoxScore }) {
   return (
-    <div className="rounded-2xl bg-card border border-border overflow-hidden shadow-xs flex flex-col">
-      <div className="p-3.5 bg-muted/40 border-b border-border flex items-center justify-between text-xs">
-        <div className="flex items-center gap-2">
-          <span className="font-bold text-foreground">{team.teamName}</span>
-          {team.coach && <span className="text-muted-foreground">• Coach: {team.coach}</span>}
+    <div className="rounded-2xl bg-card border border-border overflow-hidden shadow-xs flex flex-col min-w-0 w-full max-w-full">
+      <div className="p-3.5 bg-muted/40 border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="font-bold text-foreground truncate">{team.teamName}</span>
+          {team.coach && <span className="text-muted-foreground truncate">• Coach: {team.coach}</span>}
         </div>
-        <div className="flex items-center gap-3 font-semibold">
+        <div className="flex items-center gap-3 font-semibold shrink-0">
           <span>PTS: {team.pts}</span>
           <span>EFF: {team.eff}</span>
           <span>TOVT: {team.tovt}</span>
         </div>
       </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-xs text-right border-collapse">
+      <div className="overflow-x-auto w-full min-w-0">
+        <table className="w-full min-w-[700px] text-xs text-right border-collapse">
           <thead className="bg-muted/70 text-muted-foreground text-[10px] font-semibold uppercase tracking-wider border-b border-border">
             <tr>
               <th className="py-2 px-2 text-center w-8 sticky left-0 bg-muted/90 z-10">No</th>

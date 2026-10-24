@@ -8,9 +8,9 @@ import { useLoginForm } from "./useLoginForm";
 
 const footer = (
   <>
-    Don&apos;t have an account?{" "}
+    Belum memiliki akun?{" "}
     <Link href="/register" className="text-primary font-medium no-underline">
-      Create one
+      Daftar di sini
     </Link>
   </>
 );
@@ -25,8 +25,10 @@ export function LoginForm() {
 
   return (
     <AuthShell footer={footer}>
-      <h1 className="text-[26px] font-semibold tracking-tight m-0">Welcome back</h1>
-      <p className="mt-1.5 mb-7 text-sm text-muted-foreground">Sign in to your RBAC workspace.</p>
+      <h1 className="text-[26px] font-semibold tracking-tight m-0">Masuk ke Akun</h1>
+      <p className="mt-1.5 mb-7 text-sm text-muted-foreground">
+        Portal Presensi Kehadiran &amp; Live Game Statistics Korfball Bantul.
+      </p>
 
       {errors.root?.message && <Alert message={errors.root.message} className="mb-2" />}
 
@@ -36,7 +38,7 @@ export function LoginForm() {
             href={`/verify-email-sent?email=${encodeURIComponent(submittedEmail)}`}
             className="text-primary font-medium no-underline"
           >
-            Resend verification email
+            Kirim ulang email verifikasi
           </Link>
         </p>
       )}
@@ -45,7 +47,7 @@ export function LoginForm() {
         <FormField label="Email" required error={errors.email?.message}>
           <Input
             type="email"
-            placeholder="you@company.com"
+            placeholder="nama@korfballbantul.id"
             autoComplete="email"
             iconLeft={<Mail size={16} />}
             error={errors.email?.message}
@@ -57,7 +59,7 @@ export function LoginForm() {
           label="Password"
           labelRight={
             <Link href="/forgot-password" className="text-[12.5px] text-primary font-medium no-underline">
-              Forgot?
+              Lupa password?
             </Link>
           }
           required
@@ -65,7 +67,7 @@ export function LoginForm() {
         >
           <Input
             type={showPassword ? "text" : "password"}
-            placeholder="Enter your password"
+            placeholder="Masukkan password Anda"
             autoComplete="current-password"
             iconLeft={<Lock size={16} />}
             iconRight={
@@ -74,7 +76,7 @@ export function LoginForm() {
                 variant="ghost"
                 size="iconOnly"
                 onClick={toggleShowPassword}
-                aria-label={showPassword ? "Hide password" : "Show password"}
+                aria-label={showPassword ? "Sembunyikan password" : "Tampilkan password"}
                 className="text-muted-foreground"
               >
                 {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -86,7 +88,7 @@ export function LoginForm() {
         </FormField>
 
         <Button type="submit" isLoading={isPending} fullWidth size="lg">
-          Sign in
+          Masuk
         </Button>
       </form>
     </AuthShell>

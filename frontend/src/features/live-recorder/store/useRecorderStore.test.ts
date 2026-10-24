@@ -177,5 +177,6 @@ describe("useRecorderStore", () => {
     expect(state.awayScore).toBe(1); // Incremented for AWAY
     expect(state.showAssistScorerSide).toBe("AWAY");
     expect(state.showAssistScorerPlayerId).toBe(202);
+    expect(state.showAssistGoalClockSeconds).toBe(200);
   });
 });

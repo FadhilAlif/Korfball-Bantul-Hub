@@ -261,7 +261,7 @@ export function ShotDistributionChart({ data: initialData, isLoading = false }: 
       <div className="pt-2 border-t border-border flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
         <div className="flex items-center gap-1 text-[11px]">
           <Info size={12} className="shrink-0" />
-          <span>RIM: Terobosan | SM: Tembakan Jauh | PM: Penalti</span>
+          <span>RIM: Running In Made | SM: Shot Made | PM: Penalty Made</span>
         </div>
         <div className="text-[11px] font-medium">
           Percobaan: <span className="font-mono text-foreground font-bold">{totalAttempts}</span> kali

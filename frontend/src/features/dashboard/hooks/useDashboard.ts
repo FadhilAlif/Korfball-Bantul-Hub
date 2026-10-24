@@ -38,7 +38,7 @@ export function useExportDashboard() {
       const timeStr = now.toISOString().slice(11, 19).replace(/:/g, "-");
       const anchor = document.createElement("a");
       anchor.href = url;
-      anchor.download = `rbac-report-${dateStr}-${timeStr}.xlsx`;
+      anchor.download = `korfball-hub-report-${dateStr}-${timeStr}.xlsx`;
       anchor.click();
       URL.revokeObjectURL(url);
     },

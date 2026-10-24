@@ -1,7 +1,8 @@
 "use client";
 
-import { ArrowLeft, Award, ChevronRight, Flame, Shield, Target, User } from "lucide-react";
+import { ArrowLeft, Award, ChevronRight, Flame, Shield, Target } from "lucide-react";
 import Link from "next/link";
+import { Avatar } from "@/shared/components/ui/avatar";
 import { Badge } from "@/shared/components/ui/badge";
 import { formatWibDate } from "@/shared/lib/format-date";
 import type { PlayerProfileStats } from "../types";
@@ -31,11 +32,17 @@ export function PlayerProfilePage({ data, backHref = "/stats", isSelf = false }:
       {/* Hero Card */}
       <div className="bg-card border border-border rounded-xl p-5 md:p-6 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-2xl bg-primary/10 text-primary flex items-center justify-center font-bold text-2xl border border-primary/20 shrink-0">
-            {athlete.jerseyNumber !== null ? (
-              <span className="font-mono">#{athlete.jerseyNumber}</span>
-            ) : (
-              <User size={30} />
+          <div className="relative shrink-0">
+            <Avatar
+              name={athlete.fullName}
+              src={athlete.photoUrl}
+              size={68}
+              className="rounded-2xl border-2 border-border shadow-xs"
+            />
+            {athlete.jerseyNumber !== null && (
+              <span className="absolute -bottom-1 -right-1 bg-primary text-primary-foreground font-mono font-bold text-xs px-1.5 py-0.5 rounded-md border border-background shadow-xs">
+                #{athlete.jerseyNumber}
+              </span>
             )}
           </div>
           <div>

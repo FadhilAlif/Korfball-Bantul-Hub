@@ -18,16 +18,16 @@ const SuccessState = memo(function SuccessState({ email, onRetry }: SuccessState
     <AuthStatusCard
       variant="success"
       icon={<Check size={16} />}
-      title="Check your inbox"
+      title="Periksa Kotak Masuk Anda"
       description={
         <>
-          We&apos;ve sent a reset link to <b className="text-foreground font-semibold">{email}</b>. The link expires in
-          30 minutes.
+          Kami telah mengirimkan tautan atur ulang password ke <b className="text-foreground font-semibold">{email}</b>.
+          Tautan berlaku selama 30 menit.
         </>
       }
     >
       <Button type="button" variant="outline" onClick={onRetry}>
-        Try a different email
+        Gunakan email lain
       </Button>
     </AuthStatusCard>
   );
@@ -51,16 +51,16 @@ export function ForgotPasswordForm() {
 
   return (
     <AuthShell footer={<BackToSignInLink />}>
-      <h1 className="text-[26px] font-semibold tracking-tight m-0">Forgot your password?</h1>
+      <h1 className="text-[26px] font-semibold tracking-tight m-0">Lupa Password?</h1>
       <p className="mt-1.5 mb-7 text-sm text-muted-foreground">
-        Enter your email and we&apos;ll send you a reset link.
+        Masukkan email terdaftar Anda untuk menerima tautan atur ulang password.
       </p>
 
       <form onSubmit={onSubmit} className="flex flex-col gap-3.5">
         <FormField label="Email" required error={errors.email?.message}>
           <Input
             type="email"
-            placeholder="you@company.com"
+            placeholder="nama@korfballbantul.id"
             autoComplete="email"
             iconLeft={<Mail size={16} />}
             error={errors.email?.message}
@@ -69,7 +69,7 @@ export function ForgotPasswordForm() {
         </FormField>
 
         <Button type="submit" isLoading={isLoading} fullWidth size="lg">
-          Send reset link
+          Kirim Tautan Reset
         </Button>
       </form>
     </AuthShell>

@@ -83,6 +83,7 @@ export class AuditLogsService {
         userId: auditLogs.userId,
         userName: users.fullName,
         userEmail: users.email,
+        userAvatarUrl: users.avatarUrl,
         action: auditLogs.action,
         resourceType: auditLogs.resourceType,
         resourceId: auditLogs.resourceId,

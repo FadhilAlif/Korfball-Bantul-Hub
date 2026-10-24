@@ -1,5 +1,6 @@
 import "reflect-metadata";
 import { NestFactory } from "@nestjs/core";
+import type { NestExpressApplication } from "@nestjs/platform-express";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
@@ -11,7 +12,10 @@ import { AllExceptionsFilter } from "./common/filters/all-exceptions.filter.js";
 
 async function bootstrap() {
   const logger = new Logger("Bootstrap");
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  // Increase JSON body size limit for base64 image uploads
+  app.useBodyParser("json", { limit: "10mb" });
 
   // HTTP Security Headers (OWASP Best Practices + Swagger UI compatibility)
   app.use(
@@ -65,8 +69,8 @@ async function bootstrap() {
 
   // Setup Swagger OpenAPI specification
   const config = new DocumentBuilder()
-    .setTitle("RBAC Boilerplate API")
-    .setDescription("Production-ready Role-Based Access Control API with NestJS & Drizzle ORM")
+    .setTitle("Korfball Hub API")
+    .setDescription("API Presensi Kehadiran & Live Game Statistics Korfball Bantul dengan NestJS & Drizzle ORM")
     .setVersion("1.0.0")
     .addCookieAuth("access_token")
     .build();

@@ -8,6 +8,7 @@ export interface AttendanceSheetRow {
   athleteId: number;
   fullName: string;
   nickname: string | null;
+  photoUrl?: string | null;
   sex: AthleteSex;
   jerseyNumber: number | null;
   athleteStatus: AthleteStatus;
@@ -89,6 +90,7 @@ export interface AthleteAttendanceSummaryItem {
   athleteId: number;
   fullName: string;
   nickname: string | null;
+  photoUrl?: string | null;
   sex: AthleteSex;
   jerseyNumber: number | null;
   status: AthleteStatus;

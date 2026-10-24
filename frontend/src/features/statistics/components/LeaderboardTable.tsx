@@ -2,7 +2,7 @@
 
 import { ArrowDown, ArrowUp, ArrowUpDown, ChevronRight } from "lucide-react";
 import Link from "next/link";
-import { Badge } from "@/shared/components/ui/badge";
+import { Avatar, Badge } from "@/shared/components/ui";
 import type { PlayerLeaderboardItem } from "../types";
 
 interface LeaderboardTableProps {
@@ -119,6 +119,7 @@ export function LeaderboardTable({ players, sortField, sortDirection, onSort, of
                   </td>
                   <td className="px-3 py-2.5 sticky left-0 bg-card group-hover:bg-muted/30 z-10 transition-colors">
                     <Link href={`/stats/players/${p.athleteId}`} className="flex items-center gap-2 hover:underline">
+                      <Avatar name={p.nickname || p.athleteName} src={p.photoUrl} size={26} />
                       <Badge
                         variant="outline"
                         className={`text-[10px] px-1.5 py-0 h-4 ${

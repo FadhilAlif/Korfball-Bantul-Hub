@@ -48,7 +48,10 @@ export function RolesPage() {
 
   return (
     <div className="flex flex-col gap-5">
-      <PageHeader title="Roles" description="Logical groupings of permissions. Assign roles to users in bulk." />
+      <PageHeader
+        title="Peran (Roles)"
+        description="Pengelompokan hak akses logis untuk mengatur wewenang pengguna secara terstruktur."
+      />
 
       <RoleToolbar
         search={search}
