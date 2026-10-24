@@ -12,10 +12,11 @@ export function AvatarMenu() {
 
   const name = user?.name ?? "User";
   const email = user?.email ?? "";
+  const avatarUrl = user?.avatarUrl ?? user?.athlete?.photoUrl ?? null;
 
   const trigger = (
     <Button type="button" variant="ghost" size="iconOnly" aria-label="Account menu" className="rounded-full p-0.5">
-      <Avatar name={name} size={32} />
+      <Avatar name={name} src={avatarUrl} size={32} />
     </Button>
   );
 
@@ -23,7 +24,7 @@ export function AvatarMenu() {
     <Dropdown trigger={trigger}>
       <div className="w-60 bg-popover text-popover-foreground border border-border rounded-xl shadow-md animate-scale-in overflow-hidden">
         <div className="flex items-center gap-2.5 px-3 py-3">
-          <Avatar name={name} size={36} />
+          <Avatar name={name} src={avatarUrl} size={36} />
           <div className="min-w-0">
             <div className="text-[13.5px] font-semibold leading-[1.2] truncate">{name}</div>
             <div className="text-xs text-muted-foreground truncate">{email}</div>

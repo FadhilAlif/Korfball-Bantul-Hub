@@ -131,7 +131,7 @@ const UserRow = memo(function UserRow({
 
       <TableCell>
         <div className="flex items-center gap-2.5">
-          <Avatar name={user.name} size={32} />
+          <Avatar name={user.name} src={user.avatarUrl} size={32} />
           <div>
             <div className="font-semibold text-[13.5px]">{user.name}</div>
             <div className="text-[12.5px] text-muted-foreground">{user.email}</div>

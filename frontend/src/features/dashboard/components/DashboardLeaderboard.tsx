@@ -119,7 +119,7 @@ export function DashboardLeaderboard({ isStaff = false }: DashboardLeaderboardPr
                     {/* Athlete Name & Jersey */}
                     <td className="py-2 px-3">
                       <div className="flex items-center gap-2">
-                        <Avatar name={p.athleteName} size={28} />
+                        <Avatar name={p.athleteName} src={p.photoUrl} size={28} />
                         <div>
                           <div className="font-semibold text-foreground flex items-center gap-1.5 flex-wrap">
                             <span>{p.athleteName}</span>

@@ -23,9 +23,10 @@ export const updateMeSchema = z
   .object({
     name: z.string().min(2, "Name must be at least 2 characters").max(100).trim().optional(),
     email: emailField.optional(),
+    avatarUrl: z.string().max(500).nullable().optional(),
   })
-  .refine((data) => data.name !== undefined || data.email !== undefined, {
-    message: "At least one field (name or email) is required",
+  .refine((data) => data.name !== undefined || data.email !== undefined || data.avatarUrl !== undefined, {
+    message: "At least one field (name, email, or avatarUrl) is required",
   });
 
 export const changePasswordSchema = z.object({

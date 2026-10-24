@@ -81,7 +81,7 @@ const AuditLogRow = memo(function AuditLogRow({ log }: AuditLogRowProps) {
       <TableCell>
         {log.userName ? (
           <div className="flex items-center gap-2.5">
-            <Avatar name={log.userName} size={28} />
+            <Avatar name={log.userName} src={log.userAvatarUrl} size={28} />
             <div className="flex flex-col">
               <span className="text-[13px] font-semibold leading-tight">{log.userName}</span>
               <span className="text-[12px] text-muted-foreground leading-tight">{log.userEmail}</span>

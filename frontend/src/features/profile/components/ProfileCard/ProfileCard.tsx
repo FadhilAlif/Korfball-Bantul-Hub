@@ -7,13 +7,14 @@ import { Avatar, Badge, Button } from "@/shared/components/ui";
 interface ProfileCardProps {
   name: string;
   email: string;
+  avatarUrl?: string | null;
   onEditProfile: () => void;
 }
 
-export const ProfileCard = memo(function ProfileCard({ name, email, onEditProfile }: ProfileCardProps) {
+export const ProfileCard = memo(function ProfileCard({ name, email, avatarUrl, onEditProfile }: ProfileCardProps) {
   return (
     <div className="flex items-center gap-4 p-5 rounded-xl border border-border bg-card shadow-sm">
-      <Avatar name={name} size={64} />
+      <Avatar name={name} src={avatarUrl} size={64} className="ring-2 ring-primary/20 shadow-xs" />
 
       <div className="flex-1 min-w-0">
         <h2 className="text-[17px] font-semibold tracking-tight truncate">{name}</h2>

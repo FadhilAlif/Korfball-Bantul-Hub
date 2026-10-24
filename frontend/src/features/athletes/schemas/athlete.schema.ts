@@ -9,6 +9,13 @@ export const athleteFormSchema = z.object({
     .max(30, "Nama panggilan maksimal 30 karakter")
     .optional()
     .transform((v) => (v && v.length > 0 ? v : null)),
+  photoUrl: z
+    .string()
+    .trim()
+    .max(500)
+    .optional()
+    .nullable()
+    .transform((v) => (v && v.length > 0 ? v : null)),
   sex: z.enum(["MALE", "FEMALE"], {
     message: "Jenis kelamin wajib dipilih (Laki - Laki / Perempuan)",
   }),

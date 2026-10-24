@@ -43,6 +43,7 @@ export function LiveRecorderPage({ matchId }: LiveRecorderPageProps) {
     showAssistSheetForEventId,
     showAssistScorerSide,
     showAssistScorerPlayerId,
+    showAssistGoalClockSeconds,
     showShotZoneModal,
     pendingShotAction,
     initMatch,
@@ -306,7 +307,7 @@ export function LiveRecorderPage({ matchId }: LiveRecorderPageProps) {
           side: showAssistScorerSide,
           matchPlayerId: assistPlayerId,
           relatedEventId: showAssistSheetForEventId,
-          clockSeconds: clock.remainingSeconds,
+          clockSeconds: showAssistGoalClockSeconds ?? clock.remainingSeconds,
         });
         toast.success("Assist berhasil dicatat.");
       } catch {
@@ -318,11 +319,16 @@ export function LiveRecorderPage({ matchId }: LiveRecorderPageProps) {
     [
       showAssistSheetForEventId,
       showAssistScorerSide,
+      showAssistGoalClockSeconds,
       recordEvent,
       clock.remainingSeconds,
       setShowAssistSheetForEventId,
     ],
   );
+
+  const handleDismissAssist = useCallback(() => {
+    setShowAssistSheetForEventId(null);
+  }, [setShowAssistSheetForEventId]);
 
   // Substitution confirm
   const handleConfirmSub = useCallback(
@@ -471,7 +477,7 @@ export function LiveRecorderPage({ matchId }: LiveRecorderPageProps) {
   const selectedPlayer = selectedPlayerId ? (players.find((p) => p.id === selectedPlayerId) ?? null) : null;
 
   return (
-    <div className="flex flex-col min-h-screen bg-background -m-4 sm:-m-6">
+    <div className="flex flex-col gap-3 sm:gap-4 min-h-screen bg-background -mx-4 -mt-4 md:-mx-6 md:-mt-6 pb-6">
       {/* Sticky Top Scoreboard */}
       <Scoreboard
         homeTeamName={match.homeTeamName}
@@ -495,7 +501,7 @@ export function LiveRecorderPage({ matchId }: LiveRecorderPageProps) {
       />
 
       {/* Main Interactive Recorder Canvas */}
-      <main className="flex-1 p-2 sm:p-4 md:p-6 max-w-7xl mx-auto w-full">
+      <main className="flex-1 px-3 sm:px-4 md:px-6 pt-1 sm:pt-2 pb-4 max-w-7xl mx-auto w-full">
         {/* Tablet / Desktop Landscape 3-Column Layout */}
         <div className="hidden lg:grid lg:grid-cols-12 gap-4 items-start">
           {/* Column 1: Home Team Players (4 cols) */}
@@ -631,7 +637,7 @@ export function LiveRecorderPage({ matchId }: LiveRecorderPageProps) {
           scorerPlayerId={showAssistScorerPlayerId}
           players={players}
           onSelectAssist={handleSelectAssist}
-          onDismiss={() => setShowAssistSheetForEventId(null)}
+          onDismiss={handleDismissAssist}
         />
       )}
 

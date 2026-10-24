@@ -44,7 +44,12 @@ export const ProfilePage = memo(function ProfilePage() {
         description="Informasi akun pengguna, role aktif, dan wewenang akses yang dimiliki."
       />
 
-      <ProfileCard name={user.name} email={user.email} onEditProfile={openEditProfile} />
+      <ProfileCard
+        name={user.name}
+        email={user.email}
+        avatarUrl={user.avatarUrl ?? user.athlete?.photoUrl ?? null}
+        onEditProfile={openEditProfile}
+      />
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <RolesCard roles={roles} />

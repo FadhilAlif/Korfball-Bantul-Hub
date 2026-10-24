@@ -31,6 +31,12 @@ const envSchema = z.object({
   EMAIL_FROM: z.string().optional(),
   REDIS_URL: z.string().optional(),
   APP_NAME: z.string().default("Korfball Hub"),
+
+  AWS_ENDPOINT_URL_S3: z.string().optional(),
+  AWS_ACCESS_KEY_ID: z.string().optional(),
+  AWS_SECRET_ACCESS_KEY: z.string().optional(),
+  AWS_REGION: z.string().default("ap-southeast-1"),
+  S3_BUCKET: z.string().default("uploads"),
 });
 
 const result = envSchema.safeParse(process.env);

@@ -13,6 +13,7 @@ export const createAthleteSchema = z.object({
   teamId: z.number().int().positive("Tim wajib dipilih"),
   fullName: z.string().trim().min(2, "Nama lengkap minimal 2 karakter").max(100, "Nama lengkap maksimal 100 karakter"),
   nickname: z.string().trim().max(30, "Nama panggilan maksimal 30 karakter").optional().nullable(),
+  photoUrl: z.string().max(500).optional().nullable(),
   sex: z.enum(["MALE", "FEMALE"], {
     message: "Jenis kelamin wajib dipilih (MALE / FEMALE)",
   }),
@@ -38,6 +39,7 @@ export const updateAthleteSchema = z.object({
     .max(100, "Nama lengkap maksimal 100 karakter")
     .optional(),
   nickname: z.string().trim().max(30, "Nama panggilan maksimal 30 karakter").optional().nullable(),
+  photoUrl: z.string().max(500).optional().nullable(),
   sex: z
     .enum(["MALE", "FEMALE"], {
       message: "Jenis kelamin wajib dipilih (MALE / FEMALE)",

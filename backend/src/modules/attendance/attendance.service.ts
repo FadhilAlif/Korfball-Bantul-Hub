@@ -36,6 +36,7 @@ export interface AttendanceSheetRow {
   athleteId: number;
   fullName: string;
   nickname: string | null;
+  photoUrl: string | null;
   sex: Sex;
   jerseyNumber: number | null;
   athleteStatus: AthleteStatus;
@@ -82,6 +83,7 @@ export interface AthleteAttendanceSummaryItem {
   athleteId: number;
   fullName: string;
   nickname: string | null;
+  photoUrl: string | null;
   sex: Sex;
   jerseyNumber: number | null;
   status: AthleteStatus;
@@ -170,6 +172,7 @@ export class AttendanceService {
           athleteId: a.id,
           fullName: a.fullName,
           nickname: a.nickname,
+          photoUrl: a.photoUrl ?? null,
           sex: a.sex,
           jerseyNumber: a.jerseyNumber,
           athleteStatus: a.status,
@@ -193,6 +196,7 @@ export class AttendanceService {
         athleteId: a.id,
         fullName: a.fullName,
         nickname: a.nickname,
+        photoUrl: a.photoUrl ?? null,
         sex: a.sex,
         jerseyNumber: a.jerseyNumber,
         athleteStatus: a.status,
@@ -784,6 +788,7 @@ export class AttendanceService {
         id: athletes.id,
         fullName: athletes.fullName,
         nickname: athletes.nickname,
+        photoUrl: athletes.photoUrl,
         sex: athletes.sex,
         jerseyNumber: athletes.jerseyNumber,
         status: athletes.status,
@@ -801,6 +806,7 @@ export class AttendanceService {
           athleteId: a.id,
           fullName: a.fullName,
           nickname: a.nickname,
+          photoUrl: a.photoUrl ?? null,
           sex: a.sex,
           jerseyNumber: a.jerseyNumber,
           status: a.status,
@@ -846,6 +852,7 @@ export class AttendanceService {
         athleteId: a.id,
         fullName: a.fullName,
         nickname: a.nickname,
+        photoUrl: a.photoUrl ?? null,
         sex: a.sex,
         jerseyNumber: a.jerseyNumber,
         status: a.status,

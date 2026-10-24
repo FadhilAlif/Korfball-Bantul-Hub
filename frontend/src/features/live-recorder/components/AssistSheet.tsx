@@ -1,7 +1,7 @@
 "use client";
 
 import { Sparkles, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/shared/components/ui/button";
 import type { MatchPlayerItem, MatchSide } from "../../matches/types";
 
@@ -15,7 +15,7 @@ interface AssistSheetProps {
 }
 
 export function AssistSheet({
-  goalEventId: _goalEventId,
+  goalEventId,
   side,
   scorerPlayerId,
   players,
@@ -23,6 +23,8 @@ export function AssistSheet({
   onDismiss,
 }: AssistSheetProps) {
   const [secondsLeft, setSecondsLeft] = useState(6);
+  const onDismissRef = useRef(onDismiss);
+  onDismissRef.current = onDismiss;
 
   const scorer = scorerPlayerId ? players.find((p) => p.id === scorerPlayerId) : null;
 
@@ -32,11 +34,13 @@ export function AssistSheet({
   );
 
   useEffect(() => {
+    if (!goalEventId) return;
+    setSecondsLeft(6);
     const timer = setInterval(() => {
       setSecondsLeft((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
-          onDismiss();
+          onDismissRef.current();
           return 0;
         }
         return prev - 1;
@@ -44,7 +48,7 @@ export function AssistSheet({
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [onDismiss]);
+  }, [goalEventId]);
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-50 p-3 sm:p-4 bg-background/95 backdrop-blur-md border-t border-border shadow-2xl animate-in slide-in-from-bottom duration-200">

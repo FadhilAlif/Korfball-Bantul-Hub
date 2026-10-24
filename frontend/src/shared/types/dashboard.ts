@@ -4,6 +4,7 @@ export interface RecentActivityItem {
   resourceType: string;
   resourceId: number | null;
   userName: string | null;
+  userAvatarUrl?: string | null;
   createdAt: string;
 }
 

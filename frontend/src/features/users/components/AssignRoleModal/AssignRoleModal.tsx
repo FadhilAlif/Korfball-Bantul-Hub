@@ -38,7 +38,7 @@ export function AssignRoleModal({ isOpen, onClose, user }: AssignRoleModalProps)
 
         {/* User card */}
         <div className="flex items-center gap-3 p-3 bg-muted rounded-lg border border-border">
-          <Avatar name={user.name} size={36} />
+          <Avatar name={user.name} src={user.avatarUrl} size={36} />
           <div className="flex-1 min-w-0">
             <div className="text-[13.5px] font-semibold">{user.name}</div>
             <div className="text-[12.5px] text-muted-foreground">{user.email}</div>

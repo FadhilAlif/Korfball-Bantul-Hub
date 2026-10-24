@@ -12,6 +12,7 @@ import { Optional } from "@nestjs/common";
 export interface RoleUserItem {
   id: number;
   name: string;
+  avatarUrl?: string | null;
 }
 
 export interface RoleItem {
@@ -74,7 +75,7 @@ export class RolesService {
         const [rolePerms, roleUsers] = await Promise.all([
           this.getRolePermissionNames(r.id),
           this.db
-            .select({ id: users.id, name: users.fullName })
+            .select({ id: users.id, name: users.fullName, avatarUrl: users.avatarUrl })
             .from(userRoles)
             .innerJoin(users, eq(userRoles.userId, users.id))
             .where(and(eq(userRoles.roleId, r.id), isNull(users.deletedAt)))
@@ -108,7 +109,7 @@ export class RolesService {
     const [perms, roleUsers] = await Promise.all([
       this.getRolePermissionNames(roleId),
       this.db
-        .select({ id: users.id, name: users.fullName })
+        .select({ id: users.id, name: users.fullName, avatarUrl: users.avatarUrl })
         .from(userRoles)
         .innerJoin(users, eq(userRoles.userId, users.id))
         .where(and(eq(userRoles.roleId, roleId), isNull(users.deletedAt)))

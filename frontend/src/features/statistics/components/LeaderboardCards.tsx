@@ -2,7 +2,7 @@
 
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
-import { Badge } from "@/shared/components/ui/badge";
+import { Avatar, Badge } from "@/shared/components/ui";
 import type { PlayerLeaderboardItem } from "../types";
 
 interface LeaderboardCardsProps {
@@ -43,6 +43,7 @@ export function LeaderboardCards({ players, offset = 0 }: LeaderboardCardsProps)
               >
                 {rank}
               </span>
+              <Avatar name={p.nickname || p.athleteName} src={p.photoUrl} size={36} className="shrink-0" />
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5 flex-wrap">
                   <Badge

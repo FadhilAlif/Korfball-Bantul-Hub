@@ -248,6 +248,7 @@ export class AuthService {
           id: athletes.id,
           fullName: athletes.fullName,
           nickname: athletes.nickname,
+          photoUrl: athletes.photoUrl,
           teamId: athletes.teamId,
           jerseyNumber: athletes.jerseyNumber,
           sex: athletes.sex,
@@ -258,12 +259,14 @@ export class AuthService {
     ]);
 
     const linkedAthlete = linkedAthletes[0] ?? null;
+    const effectiveAvatarUrl = user.avatarUrl ?? linkedAthlete?.photoUrl ?? null;
 
     return {
       id: user.id,
       name: user.fullName,
       fullName: user.fullName,
       email: user.email,
+      avatarUrl: effectiveAvatarUrl,
       roles: rolesList,
       permissions: permissionsList,
       athlete: linkedAthlete,
@@ -286,8 +289,16 @@ export class AuthService {
       .set({
         ...(input.name !== undefined ? { fullName: input.name } : {}),
         ...(input.email !== undefined ? { email: input.email } : {}),
+        ...(input.avatarUrl !== undefined ? { avatarUrl: input.avatarUrl } : {}),
       })
       .where(eq(users.id, userId));
+
+    if (input.avatarUrl !== undefined) {
+      await this.db
+        .update(athletes)
+        .set({ photoUrl: input.avatarUrl })
+        .where(and(eq(athletes.userId, userId), isNull(athletes.deletedAt)));
+    }
 
     return this.getMe(userId);
   }

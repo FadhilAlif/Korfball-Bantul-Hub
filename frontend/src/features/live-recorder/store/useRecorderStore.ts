@@ -76,6 +76,7 @@ export interface RecorderState {
   showAssistSheetForEventId: string | null;
   showAssistScorerSide: MatchSide | null;
   showAssistScorerPlayerId: number | null;
+  showAssistGoalClockSeconds: number | null;
   showShotZoneModal: boolean;
   pendingShotAction: {
     type: MatchEventType;
@@ -96,6 +97,7 @@ export interface RecorderState {
     eventId: string | null,
     side?: MatchSide | null,
     scorerPlayerId?: number | null,
+    goalClockSeconds?: number | null,
   ) => void;
   setShowShotZoneModal: (show: boolean) => void;
   setPendingShotAction: (action: { type: MatchEventType; side: MatchSide; matchPlayerId: number } | null) => void;
@@ -133,6 +135,7 @@ export const useRecorderStore = create<RecorderState>((set, get) => ({
   showAssistSheetForEventId: null,
   showAssistScorerSide: null,
   showAssistScorerPlayerId: null,
+  showAssistGoalClockSeconds: null,
   showShotZoneModal: false,
   pendingShotAction: null,
 
@@ -203,6 +206,7 @@ export const useRecorderStore = create<RecorderState>((set, get) => ({
       showAssistSheetForEventId: null,
       showAssistScorerSide: null,
       showAssistScorerPlayerId: null,
+      showAssistGoalClockSeconds: null,
     });
   },
 
@@ -230,11 +234,12 @@ export const useRecorderStore = create<RecorderState>((set, get) => ({
   setPeriod: (period) => set({ currentPeriod: period }),
   setScores: (homeScore, awayScore) => set({ homeScore, awayScore }),
   setSyncStatus: (syncStatus, pendingCount) => set({ syncStatus, pendingCount }),
-  setShowAssistSheetForEventId: (eventId, side = null, scorerPlayerId = null) =>
+  setShowAssistSheetForEventId: (eventId, side = null, scorerPlayerId = null, goalClockSeconds = null) =>
     set({
       showAssistSheetForEventId: eventId,
       showAssistScorerSide: side,
       showAssistScorerPlayerId: scorerPlayerId,
+      showAssistGoalClockSeconds: goalClockSeconds,
     }),
   setShowShotZoneModal: (show) => set({ showShotZoneModal: show }),
   setPendingShotAction: (pending) => set({ pendingShotAction: pending }),
@@ -313,12 +318,13 @@ export const useRecorderStore = create<RecorderState>((set, get) => ({
       await outbox.enqueue(newEvent);
     }
 
-    // If it's a goal, prompt assist sheet with accurate scorer info
+    // If it's a goal, prompt assist sheet with accurate scorer info and exact goal clock
     if (isGoal) {
       set({
         showAssistSheetForEventId: eventId,
         showAssistScorerSide: options.side,
         showAssistScorerPlayerId: options.matchPlayerId ?? null,
+        showAssistGoalClockSeconds: options.clockSeconds,
       });
     }
 

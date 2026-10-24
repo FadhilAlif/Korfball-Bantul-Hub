@@ -10,6 +10,6 @@ export interface RoleWithPermissions {
   name: string;
   description: string | null;
   permissions: string[];
-  users: { id: number; name: string }[];
+  users: { id: number; name: string; avatarUrl?: string | null }[];
   created_at: string;
 }

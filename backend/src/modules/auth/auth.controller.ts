@@ -84,15 +84,19 @@ export class AuthController {
       name: result.user.name ?? result.user.fullName ?? "",
       fullName: result.user.fullName ?? result.user.name ?? "",
       email: result.user.email,
+      avatarUrl: result.user.avatarUrl ?? null,
       roles: result.user.roles,
       permissions: result.user.permissions,
+      athlete: result.user.athlete ?? null,
       user: {
         id: result.user.id,
         name: result.user.name ?? result.user.fullName ?? "",
         fullName: result.user.fullName ?? result.user.name ?? "",
         email: result.user.email,
+        avatarUrl: result.user.avatarUrl ?? null,
         roles: result.user.roles,
         permissions: result.user.permissions,
+        athlete: result.user.athlete ?? null,
       },
     };
 
@@ -143,15 +147,19 @@ export class AuthController {
       name: profile.name ?? profile.fullName ?? "",
       fullName: profile.fullName ?? profile.name ?? "",
       email: profile.email,
+      avatarUrl: profile.avatarUrl ?? null,
       roles: profile.roles,
       permissions: profile.permissions,
+      athlete: profile.athlete ?? null,
       user: {
         id: profile.id,
         name: profile.name ?? profile.fullName ?? "",
         fullName: profile.fullName ?? profile.name ?? "",
         email: profile.email,
+        avatarUrl: profile.avatarUrl ?? null,
         roles: profile.roles,
         permissions: profile.permissions,
+        athlete: profile.athlete ?? null,
       },
     };
     return {
@@ -168,15 +176,19 @@ export class AuthController {
       name: updated.name ?? updated.fullName ?? "",
       fullName: updated.fullName ?? updated.name ?? "",
       email: updated.email,
+      avatarUrl: updated.avatarUrl ?? null,
       roles: updated.roles,
       permissions: updated.permissions,
+      athlete: updated.athlete ?? null,
       user: {
         id: updated.id,
         name: updated.name ?? updated.fullName ?? "",
         fullName: updated.fullName ?? updated.name ?? "",
         email: updated.email,
+        avatarUrl: updated.avatarUrl ?? null,
         roles: updated.roles,
         permissions: updated.permissions,
+        athlete: updated.athlete ?? null,
       },
     };
     return {
@@ -210,15 +222,19 @@ export class AuthController {
       name: result.user.name ?? result.user.fullName ?? "",
       fullName: result.user.fullName ?? result.user.name ?? "",
       email: result.user.email,
+      avatarUrl: result.user.avatarUrl ?? null,
       roles: result.user.roles,
       permissions: result.user.permissions,
+      athlete: result.user.athlete ?? null,
       user: {
         id: result.user.id,
         name: result.user.name ?? result.user.fullName ?? "",
         fullName: result.user.fullName ?? result.user.name ?? "",
         email: result.user.email,
+        avatarUrl: result.user.avatarUrl ?? null,
         roles: result.user.roles,
         permissions: result.user.permissions,
+        athlete: result.user.athlete ?? null,
       },
     };
 

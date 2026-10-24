@@ -3,7 +3,7 @@ import { Inject, Injectable } from "@nestjs/common";
 import { and, count, desc, eq, ilike, inArray, isNull, ne, or } from "drizzle-orm";
 import { DRIZZLE_DB } from "../../database/database.module.js";
 import type { DrizzleDatabase } from "../../database/connection.js";
-import { passwordResetTokens, roles, userRoles, users } from "../../database/schema/index.js";
+import { athletes, passwordResetTokens, roles, userRoles, users } from "../../database/schema/index.js";
 import { hashPassword } from "../../utils/hash.js";
 import { MailService } from "../auth/mail.service.js";
 import { TokenService } from "../auth/token.service.js";
@@ -20,6 +20,7 @@ export interface UserItem {
   name: string;
   fullName?: string;
   email: string;
+  avatarUrl: string | null;
   is_active: boolean;
   isActive?: boolean;
   email_verified: boolean;
@@ -92,6 +93,7 @@ export class UsersService {
           name: u.fullName,
           fullName: u.fullName,
           email: u.email,
+          avatarUrl: u.avatarUrl ?? null,
           is_active: u.isActive,
           isActive: u.isActive,
           email_verified: u.emailVerifiedAt !== null,
@@ -128,6 +130,7 @@ export class UsersService {
       name: user.fullName,
       fullName: user.fullName,
       email: user.email,
+      avatarUrl: user.avatarUrl ?? null,
       is_active: user.isActive,
       isActive: user.isActive,
       email_verified: user.emailVerifiedAt !== null,
@@ -154,6 +157,7 @@ export class UsersService {
       .values({
         fullName: input.name,
         email: input.email,
+        avatarUrl: input.avatarUrl ?? null,
         passwordHash: placeholderHash,
         isActive: false,
       })
@@ -207,9 +211,17 @@ export class UsersService {
       .set({
         ...(input.name !== undefined ? { fullName: input.name } : {}),
         ...(input.email !== undefined ? { email: input.email } : {}),
+        ...(input.avatarUrl !== undefined ? { avatarUrl: input.avatarUrl } : {}),
         ...(input.is_active !== undefined ? { isActive: input.is_active } : {}),
       })
       .where(eq(users.id, userId));
+
+    if (input.avatarUrl !== undefined) {
+      await this.db
+        .update(athletes)
+        .set({ photoUrl: input.avatarUrl })
+        .where(and(eq(athletes.userId, userId), isNull(athletes.deletedAt)));
+    }
   }
 
   async deleteUser(userId: number): Promise<void> {

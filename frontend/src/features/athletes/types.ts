@@ -11,6 +11,7 @@ export interface AthleteItem {
   userEmail: string | null;
   fullName: string;
   nickname: string | null;
+  photoUrl?: string | null;
   sex: AthleteSex;
   jerseyNumber: number | null;
   birthDate: string | null;
