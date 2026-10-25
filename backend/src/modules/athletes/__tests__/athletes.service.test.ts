@@ -34,12 +34,16 @@ function createMockDb(selectResponses: unknown[][] = []) {
     insert: vi.fn(() => ({
       values: vi.fn(() => ({
         returning: vi.fn().mockResolvedValue([{ id: 1 }]),
+        onConflictDoNothing: vi.fn().mockResolvedValue(undefined),
       })),
     })),
     update: vi.fn(() => ({
       set: vi.fn(() => ({
         where: vi.fn().mockResolvedValue(undefined),
       })),
+    })),
+    delete: vi.fn(() => ({
+      where: vi.fn().mockResolvedValue(undefined),
     })),
   };
 }
@@ -143,6 +147,8 @@ describe("AthletesService & Business Rules (BR-01, BR-02, BR-03, BR-04)", () => 
       [{ id: 10 }],
       // validateUserLinking: no conflict
       [],
+      // ensureAthleteRole: select athleteRole
+      [{ id: 3 }],
       // getAthlete after update
       [
         {
@@ -174,6 +180,7 @@ describe("AthletesService & Business Rules (BR-01, BR-02, BR-03, BR-04)", () => 
     const result = await service.linkUser(1, 10);
 
     expect(result.userId).toBe(10);
+    expect(mockDb.insert).toHaveBeenCalled();
     expect(mockCache.invalidateUser).toHaveBeenCalledWith(10);
   });
 

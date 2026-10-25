@@ -49,7 +49,8 @@ export class PermissionsController {
     @Query("usage") usage?: string,
   ) {
     const pageNum = page ? Math.max(1, parseInt(page, 10)) : 1;
-    const limitNum = limit ? Math.max(1, parseInt(limit, 10)) : 50;
+    const parsedLimit = limit ? parseInt(limit, 10) : 50;
+    const limitNum = parsedLimit === -1 ? 1000 : Math.max(1, parsedLimit);
 
     return this.permissionsService.listPermissions(pageNum, limitNum, search, usage);
   }

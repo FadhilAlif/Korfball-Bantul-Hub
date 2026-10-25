@@ -51,7 +51,8 @@ export class UsersController {
     @Query("status") status?: string,
   ) {
     const pageNum = page ? Math.max(1, parseInt(page, 10)) : 1;
-    const limitNum = limit ? Math.max(1, parseInt(limit, 10)) : 10;
+    const parsedLimit = limit ? parseInt(limit, 10) : 10;
+    const limitNum = parsedLimit === -1 ? 1000 : Math.max(1, parsedLimit);
     const statusBool =
       status === "true" || status === "active" ? true : status === "false" || status === "inactive" ? false : undefined;
 

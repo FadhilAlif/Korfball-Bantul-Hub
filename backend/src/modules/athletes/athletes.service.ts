@@ -15,8 +15,10 @@ import {
   athletes,
   attendances,
   matchPlayers,
+  roles,
   sessions,
   teams,
+  userRoles,
   users,
 } from "../../database/schema/index.js";
 import { PermissionsCacheService } from "../permissions/permissions-cache.service.js";
@@ -214,6 +216,7 @@ export class AthletesService {
       .returning({ id: athletes.id });
 
     if (input.userId) {
+      await this.ensureAthleteRole(input.userId);
       await this.permissionsCacheService?.invalidateUser(input.userId);
     }
 
@@ -272,9 +275,11 @@ export class AthletesService {
     }
 
     if (existing.userId && existing.userId !== resultingUserId) {
+      await this.cleanupAthleteRole(existing.userId);
       await this.permissionsCacheService?.invalidateUser(existing.userId);
     }
     if (resultingUserId && resultingUserId !== existing.userId) {
+      await this.ensureAthleteRole(resultingUserId);
       await this.permissionsCacheService?.invalidateUser(resultingUserId);
     }
 
@@ -308,7 +313,10 @@ export class AthletesService {
       await this.db.update(athletes).set({ photoUrl: linkedUser.avatarUrl }).where(eq(athletes.id, athleteId));
     }
 
+    await this.ensureAthleteRole(userId);
+
     if (previousUserId && previousUserId !== userId) {
+      await this.cleanupAthleteRole(previousUserId);
       await this.permissionsCacheService?.invalidateUser(previousUserId);
     }
     await this.permissionsCacheService?.invalidateUser(userId);
@@ -332,6 +340,7 @@ export class AthletesService {
     await this.db.update(athletes).set({ userId: null }).where(eq(athletes.id, athleteId));
 
     if (previousUserId) {
+      await this.cleanupAthleteRole(previousUserId);
       await this.permissionsCacheService?.invalidateUser(previousUserId);
     }
 
@@ -376,7 +385,45 @@ export class AthletesService {
       .where(eq(athletes.id, athleteId));
 
     if (existing.userId) {
+      await this.cleanupAthleteRole(existing.userId);
       await this.permissionsCacheService?.invalidateUser(existing.userId);
+    }
+  }
+
+  private async ensureAthleteRole(userId: number): Promise<void> {
+    const [athleteRole] = await this.db
+      .select({ id: roles.id })
+      .from(roles)
+      .where(eq(roles.name, "athlete"))
+      .limit(1);
+
+    if (athleteRole) {
+      await this.db
+        .insert(userRoles)
+        .values({ userId, roleId: athleteRole.id })
+        .onConflictDoNothing();
+    }
+  }
+
+  private async cleanupAthleteRole(userId: number): Promise<void> {
+    const [athleteRole] = await this.db
+      .select({ id: roles.id })
+      .from(roles)
+      .where(eq(roles.name, "athlete"))
+      .limit(1);
+
+    if (!athleteRole) return;
+
+    const [otherAthlete] = await this.db
+      .select({ id: athletes.id })
+      .from(athletes)
+      .where(and(eq(athletes.userId, userId), isNull(athletes.deletedAt)))
+      .limit(1);
+
+    if (!otherAthlete) {
+      await this.db
+        .delete(userRoles)
+        .where(and(eq(userRoles.userId, userId), eq(userRoles.roleId, athleteRole.id)));
     }
   }
 
